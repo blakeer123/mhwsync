@@ -130,3 +130,5 @@ dmypy.json
 
 #logfile
 log.log
+
+.vscode/
