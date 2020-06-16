@@ -120,7 +120,7 @@ def overview():
 @app.route('/sessions')
 def listsessions():
     dbgmsg(request.full_path + " called")
-    return str(sessions)
+    return repr(sessions)
 
 @app.route('/session/<string:id>')
 def sessioninfo(id):
@@ -148,7 +148,7 @@ def deletesession(id):
     dbgmsg(request.full_path + " called")
     if id not in session_dict:
         return "false"
-    sessions.remove(session_dict[id])
+    sessions.remove(sessions[session_dict[id]])
     return "true"
 
 
