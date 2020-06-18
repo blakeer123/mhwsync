@@ -31,7 +31,6 @@ NOTSET 0
 """
 
 
-
 class part:
     def gethp(self):
         return self.__hp
@@ -60,8 +59,8 @@ class monster:
 
     def getpartlist(self):
         ret = []
-        for i, entry in enumerate(self.__parts):
-            ret.append((i, entry.gethp()))
+        for entry in self.__parts:
+            ret.append(entry.gethp())
         return ret
 
     def getpart(self, index):
@@ -79,8 +78,20 @@ class session:
             return "true"
         return "false"
 
+    def addmonster(self):
+        if(self.__monsters[0] == None):
+            self.__monsters[0] = monster()
+            return "true"
+        elif(self.__monsters[1] == None):
+            self.__monsters[1] = monster()
+            return "true"
+        elif(self.__monsters[2] == None):
+            self.__monsters[2] = monster()
+            return "true"
+        return "false"
+
     def deletemonster(self, index):
-        if index >= 0 and index <= 2 and self.__monsters[index] is not None: 
+        if index >= 0 and index <= 2 and self.__monsters[index] is not None:
             self.__monsters[index] = None
             return "true"
         return "false"
@@ -106,11 +117,11 @@ def overview():
         "/session/<id>/create": "creates session",
         "/session/<id>/delete": "deletes session",
         "/session/<id>/monsters": "lists monsters",
+        "/session/<id>/monsters/add": "creates new monster",
         "/session/<id>/monster/<index>": "retrieves info about monster",
-        "/session/<id>/monster/<index>/create": "creates new monster",
         "/session/<id>/monster/<index>/delete": "deletes monster",
         "/session/<id>/monster/<index>/parts": "lists registered parts of monster",
-        "/session/<id>/monster/<index>/parts/add": "creates part",
+        "/session/<id>/monster/<index>/parts/add": "creates new part",
         "/session/<id>/monster/<index>/part/<index>": "retrieves info about part",
         "/session/<id>/monster/<index>/part/<index>/hp": "gets part hp",
         "/session/<id>/monster/<index>/part/<index>/hp/<value>": "sets part hp to <value>",
@@ -122,14 +133,14 @@ def listsessions():
     dbgmsg(request.full_path + " called")
     return repr(sessions)
 
+
 @app.route('/session/<string:id>')
 def sessioninfo(id):
     dbgmsg(request.full_path + " called")
     if id not in session_dict:
         return "false"
-    #return str(sessions[session_dict[id]].getmonsters())
     return "true"
-    
+
 
 @app.route('/session/<string:id>/create')
 def createsession(id):
@@ -149,6 +160,7 @@ def deletesession(id):
     if id not in session_dict:
         return "false"
     sessions.remove(sessions[session_dict[id]])
+    session_dict.pop(id)
     return "true"
 
 
@@ -164,19 +176,19 @@ def monsters(id):
 def getmonster(id, index):
     dbgmsg(request.full_path + " called")
     if id not in session_dict:
-        return  "false"
+        return "false"
     mon = sessions[session_dict[id]].getmonster(index)
     if mon is None:
         return "false"
     return str(mon.getpartlist())
 
 
-@app.route('/session/<string:id>/monster/<int:index>/create')
-def createmonster(id, index):
+@app.route('/session/<string:id>/monsters/add')
+def addmonster(id):
     dbgmsg(request.full_path + " called")
     if id not in session_dict:
         return "false"
-    return sessions[session_dict[id]].createmonster(index)
+    return sessions[session_dict[id]].addmonster()
 
 
 @app.route('/session/<string:id>/monster/<int:index>/delete')
@@ -184,7 +196,7 @@ def deletemonster(id, index):
     dbgmsg(request.full_path + " called")
     if id not in session_dict:
         return "false"
-    return sessions[session_dict[id]].deletemonster()
+    return sessions[session_dict[id]].deletemonster(index)
 
 
 @app.route('/session/<string:id>/monster/<int:index>/parts')
@@ -254,6 +266,8 @@ def setparthp(id, index, partindex, value):
 
 @app.errorhandler(404)
 def not_found(error=None):
+    errmsg("error 404: " + request.url)
+    return "false"
     message = {
         'status': 404,
         'message': 'Not found: ' + request.url,
@@ -266,6 +280,14 @@ def not_found(error=None):
 
 @app.errorhandler(Exception)
 def handle_exception(e, source="app-errorhandler"):
+    msg = {
+        "errorcode": 1,
+        "message": repr(e),
+        "source": source
+    }
+    errmsg(msg)
+    return "false"
+
     # pass through HTTP errors
     if isinstance(e, HTTPException):
         return e
@@ -279,7 +301,8 @@ def handle_exception(e, source="app-errorhandler"):
         response = jsonify(msg)
         response.status_code = 500
         errmsg(msg)
-        return response
+        # return response
+        return "false"
     except:
         return "exception during exception handling!"
 
