@@ -1,13 +1,23 @@
 from flask import Flask, request, json, jsonify
-from werkzeug.exceptions import HTTPException
 import logging
 
 app = Flask(__name__)
 
 fh = logging.FileHandler("log.log", mode='a', encoding=None, delay=False)
-fh.setFormatter(logging.Formatter('[%(asctime)s] %(levelname)s in %(module)s: %(message)s'))
+fh.setFormatter(logging.Formatter(
+    '[%(asctime)s] %(levelname)s in %(module)s: %(message)s'))
 app.logger.addHandler(fh)
-app.logger.setLevel(10)
+app.logger.setLevel(30)
+
+"""
+loglevels:
+CRITICAL 50
+ERROR 40
+WARNING 30
+INFO 20
+DEBUG 10
+NOTSET 0
+"""
 
 
 def dbgmsg(msg):
@@ -19,16 +29,6 @@ def errmsg(msg):
 
 
 dbgmsg("server started")
-
-"""
-loglevels:
-CRITICAL 50
-ERROR 40
-WARNING 30
-INFO 20
-DEBUG 10
-NOTSET 0
-"""
 
 
 class part:
@@ -45,6 +45,9 @@ class part:
 
 
 class monster:
+    def __init__(self):
+        self.__parts = []
+
     def addpart(self):
         self.__parts.append(part())
 
@@ -52,6 +55,10 @@ class monster:
         if len(self.__parts) < index + 1:
             return "false"
         self.__parts.remove(index)
+        return "true"
+
+    def deleteallparts(self):
+        self.__parts.clear()
         return "true"
 
     def getparts(self):
@@ -68,16 +75,28 @@ class monster:
             return None
         return self.__parts[index]
 
-    __parts = []
-
 
 class session:
+    def __init__(self):
+        self.__monsters = [monster(), monster(), monster()]
+
     def createmonster(self, index):
-        if index >= 0 and index <= 2 and self.__monsters[index] is None:
+        if index >= 0 and index <= 2:
             self.__monsters[index] = monster()
             return "true"
         return "false"
 
+    def getmonsters(self):
+        return self.__monsters
+
+    def getmonsterliststring(self):
+        return str(self.__monsters[0].getpartlist()) + str(self.__monsters[1].getpartlist()) + str(self.__monsters[2].getpartlist())
+
+    def getmonster(self, index):
+        return self.__monsters[index]
+
+
+"""
     def addmonster(self):
         if(self.__monsters[0] == None):
             self.__monsters[0] = monster()
@@ -95,14 +114,7 @@ class session:
             self.__monsters[index] = None
             return "true"
         return "false"
-
-    def getmonsters(self):
-        return self.__monsters
-
-    def getmonster(self, index):
-        return self.__monsters[index]
-
-    __monsters = [None, None, None]
+"""
 
 
 sessions = []
@@ -131,7 +143,7 @@ def overview():
 @app.route('/sessions')
 def listsessions():
     dbgmsg(request.full_path + " called")
-    return repr(sessions)
+    return repr(session_dict)
 
 
 @app.route('/session/<string:id>')
@@ -169,7 +181,7 @@ def monsters(id):
     dbgmsg(request.full_path + " called")
     if id not in session_dict:
         return "false"
-    return str(sessions[session_dict[id]].getmonsters())
+    return sessions[session_dict[id]].getmonsterliststring()
 
 
 @app.route('/session/<string:id>/monster/<int:index>')
@@ -268,14 +280,6 @@ def setparthp(id, index, partindex, value):
 def not_found(error=None):
     errmsg("error 404: " + request.url)
     return "false"
-    message = {
-        'status': 404,
-        'message': 'Not found: ' + request.url,
-    }
-    response = jsonify(message)
-    response.status_code = 404
-    errmsg("error 404: " + request.url)
-    return response
 
 
 @app.errorhandler(Exception)
@@ -287,24 +291,6 @@ def handle_exception(e, source="app-errorhandler"):
     }
     errmsg(msg)
     return "false"
-
-    # pass through HTTP errors
-    if isinstance(e, HTTPException):
-        return e
-
-    try:
-        msg = {
-            "errorcode": 1,
-            "message": repr(e),
-            "source": source
-        }
-        response = jsonify(msg)
-        response.status_code = 500
-        errmsg(msg)
-        # return response
-        return "false"
-    except:
-        return "exception during exception handling!"
 
 
 if __name__ == "__main__":
