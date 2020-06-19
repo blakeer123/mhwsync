@@ -6,8 +6,10 @@ app = Flask(__name__)
 fh = logging.FileHandler("log.log", mode='a', encoding=None, delay=False)
 fh.setFormatter(logging.Formatter(
     '[%(asctime)s] %(levelname)s in %(module)s: %(message)s'))
+
 app.logger.addHandler(fh)
 app.logger.setLevel(30)
+
 
 """
 loglevels:
@@ -74,6 +76,9 @@ class monster:
         if len(self.__parts) < index + 1:
             return None
         return self.__parts[index]
+
+    def getpartcount(self):
+        return len(self.__parts)
 
 
 class session:
@@ -220,6 +225,17 @@ def getparts(id, index):
     if mon is None:
         return "false"
     return str(mon.getpartlist())
+
+
+@app.route('/session/<string:id>/monster/<int:index>/partcount')
+def getpartcount(id, index):
+    dbgmsg(request.full_path + " called")
+    if id not in session_dict:
+        return "false"
+    mon = sessions[session_dict[id]].getmonster(index)
+    if mon is None:
+        return "false"
+    return str(mon.getpartcount())
 
 
 @app.route('/session/<string:id>/monster/<int:index>/parts/add')
