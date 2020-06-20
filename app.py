@@ -32,58 +32,58 @@ class monster:
         self.__parts = dict()
         self.__ailments = dict()
 
-    def addpart(self, id):
+    def addPart(self, id):
         self.__parts[id] = 1707
         
-    def addailment(self, id):
+    def addAilment(self, id):
         self.__ailments[id] = 0
 
-    def deletepart(self, index):
+    def deletePart(self, index):
         if len(self.__parts) < index + 1:
             return "false"
         self.__parts.pop(index)
         return "true"
     
-    def deleteailment(self, index):
+    def deleteAilment(self, index):
         if len(self.__ailments) < index + 1:
             return "false"
         self.__ailments.pop(index)
         return "true"
     
-    def deleteallparts(self):
+    def deleteAllParts(self):
         self.__parts.clear()
         return "true"
 
-    def deleteallailments(self):
+    def deleteAllAilments(self):
         self.__ailments.clear()
         return "true"
 
-    def getparts(self):
+    def getParts(self):
         return self.__parts
 
-    def getailments(self):
+    def getAilments(self):
         return self.__ailments
 
-    def getpart(self, index):
+    def getPart(self, index):
         if len(self.__parts) < index + 1:
             return None
         return self.__parts[index]
         
-    def getailment(self, index):
+    def getAilment(self, index):
         if len(self.__ailments) < index + 1:
             return None
         return self.__ailments[index]
 
-    def getpartcount(self):
+    def getPartCount(self):
         return len(self.__parts)
         
-    def getailmentcount(self):
+    def getAilmentCount(self):
         return len(self.__ailments)
 
-    def setparthp(self, id, hp):
+    def setPartHP(self, id, hp):
         self.__parts[id] = hp
 
-    def setailmenthp(self, id, hp):
+    def setAilmentBuildup(self, id, hp):
         self.__ailments[id] = hp
 
 
@@ -91,17 +91,17 @@ class session:
     def __init__(self):
         self.__monsters = [monster(), monster(), monster()]
 
-    def createmonster(self, index):
+    def createMonster(self, index):
         if index >= 0 and index <= 2:
             self.__monsters[index] = monster()
             return "true"
         return "false"
 
-    def getmonsters(self):
+    def getMonsters(self):
         return self.__monsters
 
 
-    def getmonster(self, index):
+    def getMonster(self, index):
         return self.__monsters[index]
 
 
@@ -115,8 +115,6 @@ def overview():
         "/session/<id>": "retrieves info about session",
         "/session/<id>/create": "creates session",
         "/session/<id>/delete": "deletes session",
-        "/session/<id>/monsters": "lists monsters",
-        "/session/<id>/monsters/add": "creates new monster",
         "/session/<id>/monster/<index>": "retrieves info about monster",
         "/session/<id>/monster/<index>/delete": "deletes monster",
         "/session/<id>/monster/<index>/parts": "lists registered parts of monster",
@@ -127,24 +125,24 @@ def overview():
         "/session/<id>/monster/<index>/ailments": "lists registered ailments of monster",
         "/session/<id>/monster/<index>/ailment/<index>/add": "creates new ailment",
         "/session/<id>/monster/<index>/ailment/<index>": "retrieves info about ailment",
-        "/session/<id>/monster/<index>/ailment/<index>/hp": "gets ailment hp",
-        "/session/<id>/monster/<index>/ailment/<index>/hp/<value>": "sets ailment hp to <value>",
+        "/session/<id>/monster/<index>/ailment/<index>/buildup": "gets ailment buildup",
+        "/session/<id>/monster/<index>/ailment/<index>/buildup/<value>": "sets ailment buildup to <value>",
     }
 
 @app.route('/sessions')
-def listsessions():
+def listSessions():
     dbgmsg(request.full_path + " called")
     return repr(session_dict)
 
 @app.route('/session/<string:id>')
-def sessioninfo(id):
+def sessionInfo(id):
     dbgmsg(request.full_path + " called")
     if id not in session_dict:
         return "false"
     return "true"
 
 @app.route('/session/<string:id>/create')
-def createsession(id):
+def createSession(id):
     dbgmsg(request.full_path + " called")
     if id in session_dict:
         return "false"
@@ -155,7 +153,7 @@ def createsession(id):
     return "true"
 
 @app.route('/session/<string:id>/delete')
-def deletesession(id):
+def deleteSession(id):
     dbgmsg(request.full_path + " called")
     if id not in session_dict:
         return "false"
@@ -163,182 +161,167 @@ def deletesession(id):
     session_dict.pop(id)
     return "true"
 
-@app.route("/session/<string:id>/monsters")
-def monsters(id):
-    dbgmsg(request.full_path + " called")
-    if id not in session_dict:
-        return "false"
-    return sessions[session_dict[id]].getmonsterliststring()
-
 @app.route('/session/<string:id>/monster/<int:index>')
-def getmonster(id, index):
+def getMonster(id, index):
     dbgmsg(request.full_path + " called")
     if id not in session_dict:
         return "false"
-    mon = sessions[session_dict[id]].getmonster(index)
+    mon = sessions[session_dict[id]].getMonster(index)
     if mon is None:
         return "false"
-    return str(mon.getparts())
+    return str(mon.getParts())
 
 @app.route('/session/<string:id>/monster/<int:index>/replace')
-def replacemonster(id, index):
+def replaceMonster(id, index):
     dbgmsg(request.full_path + " called")
     if id not in session_dict:
         return "false"
     session = sessions[session_dict[id]]
     if session is None:
         return "false"
-    return str(session.createmonster(index))
-
-@app.route('/session/<string:id>/monsters/add')
-def addmonster(id):
-    dbgmsg(request.full_path + " called")
-    if id not in session_dict:
-        return "false"
-    return sessions[session_dict[id]].addmonster()
-
+    return str(session.createMonster(index))
 
 @app.route('/session/<string:id>/monster/<int:index>/delete')
-def deletemonster(id, index):
+def deleteMonster(id, index):
     dbgmsg(request.full_path + " called")
     if id not in session_dict:
         return "false"
-    return sessions[session_dict[id]].deletemonster(index)
+    return sessions[session_dict[id]].deleteMonster(index)
 
 @app.route('/session/<string:id>/monster/<int:index>/parts')
-def getparts(id, index):
+def getParts(id, index):
     dbgmsg(request.full_path + " called")
     if id not in session_dict:
         return "false"
-    mon = sessions[session_dict[id]].getmonster(index)
+    mon = sessions[session_dict[id]].getMonster(index)
     if mon is None:
         return "false"
-    return str(mon.getparts())
+    return str(mon.getParts())
 
 @app.route('/session/<string:id>/monster/<int:index>/partcount')
-def getpartcount(id, index):
+def getPartCount(id, index):
     dbgmsg(request.full_path + " called")
     if id not in session_dict:
         return "false"
-    mon = sessions[session_dict[id]].getmonster(index)
+    mon = sessions[session_dict[id]].getMonster(index)
     if mon is None:
         return "false"
-    return str(mon.getpartcount())
+    return str(mon.getPartCount())
 
 @app.route('/session/<string:id>/monster/<int:index>/part/<int:partid>/create')
-def createpart(id, index, partid):
+def createPart(id, index, partid):
     dbgmsg(request.full_path + " called")
     if id not in session_dict:
         return "false"
-    mon = sessions[session_dict[id]].getmonster(index)
+    mon = sessions[session_dict[id]].getMonster(index)
     if mon is None:
         return "false"
-    mon.addpart(partid)
+    mon.addPart(partid)
     return "true"
 
 @app.route('/session/<string:id>/monster/<int:index>/part/<int:partindex>')
-def getpart(id, index, partindex):
+def getPart(id, index, partindex):
     dbgmsg(request.full_path + " called")
     if id not in session_dict:
         return "false"
-    mon = sessions[session_dict[id]].getmonster(index)
+    mon = sessions[session_dict[id]].getMonster(index)
     if mon is None:
         return "false"
-    parts = mon.getparts()
+    parts = mon.getParts()
     if len(parts) == 0:
         return "false"
     return str(parts[partindex])
 
 @app.route('/session/<string:id>/monster/<int:index>/part/<int:partindex>/hp')
-def getparthp(id, index, partindex):
+def getPartHP(id, index, partindex):
     dbgmsg(request.full_path + " called")
     if id not in session_dict:
         return "false"
-    mon = sessions[session_dict[id]].getmonster(index)
+    mon = sessions[session_dict[id]].getMonster(index)
     if mon is None:
         return "false"
-    part = mon.getpart(partindex)
+    part = mon.getPart(partindex)
     if part is None:
         return "false"
     return str(part)
 
 @app.route('/session/<string:id>/monster/<int:index>/part/<int:partindex>/hp/<int:value>')
-def setparthp(id, index, partindex, value):
+def setPartHP(id, index, partindex, value):
     dbgmsg(request.full_path + " called")
     if id not in session_dict:
         return "false"
-    mon = sessions[session_dict[id]].getmonster(index)
+    mon = sessions[session_dict[id]].getMonster(index)
     if mon is None:
         return "false"
-    mon.setparthp(partindex, value)
+    mon.setPartHP(partindex, value)
     return "true"
 
 @app.route('/session/<string:id>/monster/<int:index>/ailments')
-def getailments(id, index):
+def getAilments(id, index):
     dbgmsg(request.full_path + " called")
     if id not in session_dict:
         return "false"
-    mon = sessions[session_dict[id]].getmonster(index)
+    mon = sessions[session_dict[id]].getMonster(index)
     if mon is None:
         return "false"
-    return str(mon.getailments())
+    return str(mon.getAilments())
 
 @app.route('/session/<string:id>/monster/<int:index>/ailmentcount')
-def getailmentcount(id, index):
+def getAilmentCount(id, index):
     dbgmsg(request.full_path + " called")
     if id not in session_dict:
         return "false"
-    mon = sessions[session_dict[id]].getmonster(index)
+    mon = sessions[session_dict[id]].getMonster(index)
     if mon is None:
         return "false"
-    return str(mon.getailmentcount())
+    return str(mon.getAilmentCount())
 
 @app.route('/session/<string:id>/monster/<int:index>/ailment/<int:ailmentid>/create')
-def createailment(id, index, ailmentid):
+def createAilment(id, index, ailmentid):
     dbgmsg(request.full_path + " called")
     if id not in session_dict:
         return "false"
-    mon = sessions[session_dict[id]].getmonster(index)
+    mon = sessions[session_dict[id]].getMonster(index)
     if mon is None:
         return "false"
-    mon.addailment(ailmentid)
+    mon.addAilment(ailmentid)
     return "true"
 
 @app.route('/session/<string:id>/monster/<int:index>/ailment/<int:ailmentindex>')
-def getailment(id, index, ailmentindex):
+def getAilment(id, index, ailmentindex):
     dbgmsg(request.full_path + " called")
     if id not in session_dict:
         return "false"
-    mon = sessions[session_dict[id]].getmonster(index)
+    mon = sessions[session_dict[id]].getMonster(index)
     if mon is None:
         return "false"
-    ailments = mon.getailments()
+    ailments = mon.getAilments()
     if len(ailments) == 0:
         return "false"
-    return str(ailments[ailmenttindex])
+    return str(ailments[ailmentindex])
 
-@app.route('/session/<string:id>/monster/<int:index>/ailment/<int:ailmentindex>/hp')
-def getailmenthp(id, index, ailmentindex):
+@app.route('/session/<string:id>/monster/<int:index>/ailment/<int:ailmentindex>/buildup')
+def getAilmentBuildup(id, index, ailmentindex):
     dbgmsg(request.full_path + " called")
     if id not in session_dict:
         return "false"
-    mon = sessions[session_dict[id]].getmonster(index)
+    mon = sessions[session_dict[id]].getMonster(index)
     if mon is None:
         return "false"
-    ailment = mon.getailment(ailmentindex)
+    ailment = mon.getAilment(ailmentindex)
     if ailment is None:
         return "false"
     return str(ailment)
 
-@app.route('/session/<string:id>/monster/<int:index>/ailment/<int:ailmentindex>/hp/<int:value>')
-def setailmenthp(id, index, ailmentindex, value):
+@app.route('/session/<string:id>/monster/<int:index>/ailment/<int:ailmentindex>/buildup/<int:value>')
+def setAilmentBuildup(id, index, ailmentindex, value):
     dbgmsg(request.full_path + " called")
     if id not in session_dict:
         return "false"
-    mon = sessions[session_dict[id]].getmonster(index)
+    mon = sessions[session_dict[id]].getMonster(index)
     if mon is None:
         return "false"
-    mon.setailmenthp(ailmentindex, value)
+    mon.setAilmentBuildup(ailmentindex, value)
     return "true"
 
 @app.errorhandler(404)
