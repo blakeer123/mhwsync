@@ -1,6 +1,7 @@
 import urllib.request
 import asyncio
 import re
+import argparse
 
 def get(url):
     response = urllib.request.urlopen(serverip + urllib.parse.quote(url)).read()
@@ -11,19 +12,22 @@ def get(url):
 async def main():
     while True:
         for i in range(3):
-            result = get("/session/" + session + "/monster/" + str(i) + "/parts")
+            result = get("/session/" + args.session + "/monster/" + str(i) + "/parts")
             assert(result != "false")
             print("monster " + str(i) + " parts: " + result)
-            result = get("/session/" + session + "/monster/" + str(i) + "/ailments")
+            result = get("/session/" + args.session + "/monster/" + str(i) + "/ailments")
             assert(result != "false")
             print("monster " + str(i) + " ailments: " + result)
         print("")
         await asyncio.sleep(1)
 
-serverip = "http://127.0.0.1:5000/"
-session = get("/sessions")
-assert(session != "")
-print("joined " + session + "\n")
+parser = argparse.ArgumentParser()
+parser.add_argument("url")
+parser.add_argument("session")
+args = parser.parse_args()
+serverip = "http://" + args.url + "/"
+
+assert(get("/session/" + args.session) != "false")
 
 try:
     asyncio.run(main())

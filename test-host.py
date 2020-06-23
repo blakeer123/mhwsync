@@ -1,6 +1,7 @@
 import urllib.request
 import asyncio
 import re
+import argparse
 
 def get(url):
     response = urllib.request.urlopen(serverip + urllib.parse.quote(url)).read()
@@ -8,9 +9,13 @@ def get(url):
     response = response.strip("\'[]")
     return str(response)
 
-serverip = "http://127.0.0.1:5000/"
-session = "testsession:#:?%"
-result = get("/session/" + session + "/create")
+
+parser = argparse.ArgumentParser()
+parser.add_argument("url")
+parser.add_argument("session")
+args = parser.parse_args()
+serverip = "http://" + args.url + "/"
+result = get("/session/" + args.session + "/create")
 
 async def main():
     partHp = [[3680], [9348, 5168, 504], [7123, 31074]]
@@ -20,14 +25,14 @@ async def main():
 
     for i in range(len(partHp)):
         for j in range(len(partHp[i])):
-            assert(get("/session/" + session + "/monster/" + str(i) + "/part/" + str(j) + "/create") == "true")
-            assert(get("/session/" + session + "/monster/" + str(i) + "/part/" + str(j) + "/hp/" + str(partHp[i][j])) == "true")
+            assert(get("/session/" + args.session + "/monster/" + str(i) + "/part/" + str(j) + "/create") == "true")
+            assert(get("/session/" + args.session + "/monster/" + str(i) + "/part/" + str(j) + "/hp/" + str(partHp[i][j])) == "true")
 
     print("parts created")
 
     for i in range(len(ailmentBuildup)):
         for j in range(len(ailmentBuildup[i])):
-            assert(get("/session/" + session + "/monster/" + str(i) + "/ailment/" + str(j) + "/create") == "true")
+            assert(get("/session/" + args.session + "/monster/" + str(i) + "/ailment/" + str(j) + "/create") == "true")
 
     print("ailments created")
 
@@ -39,12 +44,12 @@ async def main():
                 if partHp[i][j] <= partHpModifier[i]:
                     partHp[i][j] = 9999
                 partHp[i][j] -= partHpModifier[i]
-                assert(get("/session/" + session + "/monster/" + str(i) + "/part/" + str(j) + "/hp/" + str(partHp[i][j])) == "true")
+                assert(get("/session/" + args.session + "/monster/" + str(i) + "/part/" + str(j) + "/hp/" + str(partHp[i][j])) == "true")
 
         for i in range(len(ailmentBuildup)):
             for j in range(len(ailmentBuildup[i])):
                 ailmentBuildup[i][j] += ailmentBuildupModifier[i]
-                assert(get("/session/" + session + "/monster/" + str(i) + "/ailment/" + str(j) + "/buildup/" + str(ailmentBuildup[i][j])) == "true")
+                assert(get("/session/" + args.session + "/monster/" + str(i) + "/ailment/" + str(j) + "/buildup/" + str(ailmentBuildup[i][j])) == "true")
 
         await asyncio.sleep(1)
 
