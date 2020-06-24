@@ -3,11 +3,12 @@ import logging
 import os
 
 app = Flask(__name__)
-
+"""
 fh = logging.FileHandler(os.path.dirname(os.path.realpath(__file__)) + "/log.log", mode='a', encoding=None, delay=False)
 fh.setFormatter(logging.Formatter('[%(asctime)s] %(levelname)s in %(module)s: %(message)s'))
 
 app.logger.addHandler(fh)
+"""
 app.logger.setLevel(30)
 
 """
@@ -122,7 +123,7 @@ def monsterExists(id, index):
 @app.route('/clearall')
 def clearAll():
     dbgmsg(request.full_path + " called")
-    sessions_dict.clear()
+    session_dict.clear()
     sessions = []
     return "true"
 
