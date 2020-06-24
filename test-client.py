@@ -4,7 +4,7 @@ import re
 import argparse
 
 def get(url):
-    response = urllib.request.urlopen(serverip + urllib.parse.quote(url)).read()
+    response = urllib.request.urlopen("http://" + args.url + urllib.parse.quote(url)).read()
     response = re.search("'.*'", str(response)).group()
     response = response.strip("\'[]{}")
     return str(response)
@@ -25,7 +25,6 @@ parser = argparse.ArgumentParser()
 parser.add_argument("url")
 parser.add_argument("session")
 args = parser.parse_args()
-serverip = "http://" + args.url + "/"
 assert(get("/session/" + args.session + "/exists") != "false")
 
 try:

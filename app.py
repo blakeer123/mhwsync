@@ -279,7 +279,8 @@ def handle_exception(e, source="app-errorhandler"):
     msg = {
         "errorcode": 1,
         "message": repr(e),
-        "source": source
+        "source": source,
+        "request:": request.full_path
     }
     errmsg(msg)
     return "false"
