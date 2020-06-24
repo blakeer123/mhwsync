@@ -119,11 +119,11 @@ def monsterExists(id, index):
             return "true"
     return "false"
 
-#todo: add password
 @app.route('/clearall')
 def clearAll():
     dbgmsg(request.full_path + " called")
-    sessions.clear()
+    sessions_dict.clear()
+    sessions = []
     return "true"
 
 @app.route('/sessions')

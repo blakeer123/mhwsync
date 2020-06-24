@@ -26,8 +26,7 @@ parser.add_argument("url")
 parser.add_argument("session")
 args = parser.parse_args()
 serverip = "http://" + args.url + "/"
-
-assert(get("/session/" + args.session) != "false")
+assert(get("/session/" + args.session + "/exists") != "false")
 
 try:
     asyncio.run(main())
