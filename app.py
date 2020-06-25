@@ -102,7 +102,6 @@ class session:
     def getMonsters(self):
         return self.__monsters
 
-
     def getMonster(self, index):
         return self.__monsters[index]
 
@@ -128,13 +127,13 @@ def alive():
 def clearAll():
     dbgmsg(request.full_path + " called")
     session_dict.clear()
-    sessions = []
+    sessions.clear()
     return "true"
 
 @app.route('/sessions')
 def listSessions():
     dbgmsg(request.full_path + " called")
-    return repr(session_dict)
+    return str(session_dict)
 
 @app.route('/session/<string:id>/exists')
 def sessionInfo(id):
