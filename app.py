@@ -110,14 +110,14 @@ session_dict = dict()
 
 def sessionExists(id):
     if id in session_dict:
-        return "true"
-    return "false"
+        return True
+    return False
 
 def monsterExists(id, index):
     if sessionExists(id):
         if sessions[session_dict[id]].getMonster(index) is not None:
-            return "true"
-    return "false"
+            return True
+    return False
     
 @app.route('/')
 def alive():
@@ -138,12 +138,12 @@ def listSessions():
 @app.route('/session/<string:id>/exists')
 def sessionInfo(id):
     dbgmsg(request.full_path + " called")
-    return sessionExists(id)
+    return str(sessionExists(id)).lower()
 
 @app.route('/session/<string:id>/create')
 def createSession(id):
     dbgmsg(request.full_path + " called")
-    if sessionExists(id) == "true":
+    if sessionExists(id):
         return "false"
     index = len(sessions)
     sessions.append(session())
