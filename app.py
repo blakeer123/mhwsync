@@ -143,7 +143,7 @@ def sessionInfo(id):
 @app.route('/session/<string:id>/create')
 def createSession(id):
     dbgmsg(request.full_path + " called")
-    if not sessionExists(id):
+    if sessionExists(id) == "true":
         return "false"
     index = len(sessions)
     sessions.append(session())
