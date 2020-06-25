@@ -119,6 +119,10 @@ def monsterExists(id, index):
         if sessions[session_dict[id]].getMonster(index) is not None:
             return "true"
     return "false"
+    
+@app.route('/')
+def alive():
+    return "its alive"
 
 @app.route('/clearall')
 def clearAll():
