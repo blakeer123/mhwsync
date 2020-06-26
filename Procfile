@@ -1,1 +1,1 @@
-web: waitress-serve --listen=*:3333 app:app
+web: waitress-serve app:app
