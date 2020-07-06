@@ -21,6 +21,11 @@ DEBUG 10
 NOTSET 0
 """
 
+invalidIndexErrorString = "error: invalid index!"
+sessionDoesNotExistErrorString = "error: session does not exist!"
+sessionAlreadyExistsErrorString = "error: session already exists!"
+monsterDoesNotExistErrorString = "error: monster does not exist!"
+
 def dbgmsg(msg):
     app.logger.debug(msg)
 
@@ -42,13 +47,13 @@ class monster:
 
     def deletePart(self, index):
         if len(self.__parts) < index + 1:
-            return "false"
+            return invalidIndexErrorString
         self.__parts.pop(index)
         return "true"
     
     def deleteAilment(self, index):
         if len(self.__ailments) < index + 1:
-            return "false"
+            return invalidIndexErrorString
         self.__ailments.pop(index)
         return "true"
     
@@ -97,7 +102,7 @@ class session:
         if index >= 0 and index <= 2:
             self.__monsters[index] = monster()
             return "true"
-        return "false"
+        return invalidIndexErrorString
 
     def getMonsters(self):
         return self.__monsters
@@ -144,7 +149,7 @@ def sessionInfo(id):
 def createSession(id):
     dbgmsg(request.full_path + " called")
     if sessionExists(id):
-        return "false"
+        return sessionAlreadyExistsErrorString
     index = len(sessions)
     sessions.append(session())
     sessions[index].id = id
@@ -155,7 +160,7 @@ def createSession(id):
 def deleteSession(id):
     dbgmsg(request.full_path + " called")
     if not sessionExists(id):
-        return "false"
+        return sessionDoesNotExistErrorString
     sessions.remove(sessions[session_dict[id]])
     session_dict.pop(id)
     return "true"
@@ -164,7 +169,7 @@ def deleteSession(id):
 def getMonster(id, index):
     dbgmsg(request.full_path + " called")
     if not monsterExists(id, index):
-        return "false"
+        return monsterDoesNotExistErrorString
     mon = sessions[session_dict[id]].getMonster(index)
     return str(mon.getParts())
 
@@ -172,7 +177,7 @@ def getMonster(id, index):
 def replaceMonster(id, index):
     dbgmsg(request.full_path + " called")
     if not sessionExists(id):
-        return "false"
+        return sessionDoesNotExistErrorString
     session = sessions[session_dict[id]]
     if session is None:
         return "false"
@@ -182,14 +187,14 @@ def replaceMonster(id, index):
 def deleteMonster(id, index):
     dbgmsg(request.full_path + " called")
     if not sessionExists(id):
-        return "false"
+        return sessionDoesNotExistErrorString
     return sessions[session_dict[id]].deleteMonster(index)
 
 @app.route('/session/<string:id>/monster/<int:index>/clearparts')
 def clearParts(id, index):
     dbgmsg(request.full_path + " called")
     if not monsterExists(id, index):
-        return "false"
+        return monsterDoesNotExistErrorString
     mon = sessions[session_dict[id]].getMonster(index)
     return mon.deleteAllParts()
 
@@ -197,7 +202,7 @@ def clearParts(id, index):
 def getParts(id, index):
     dbgmsg(request.full_path + " called")
     if not monsterExists(id, index):
-        return "false"
+        return monsterDoesNotExistErrorString
     mon = sessions[session_dict[id]].getMonster(index)
     return str(mon.getParts())
 
@@ -205,7 +210,7 @@ def getParts(id, index):
 def getPartCount(id, index):
     dbgmsg(request.full_path + " called")
     if not monsterExists(id, index):
-        return "false"
+        return monsterDoesNotExistErrorString
     mon = sessions[session_dict[id]].getMonster(index)
     return str(mon.getPartCount())
 
@@ -213,7 +218,7 @@ def getPartCount(id, index):
 def getPartHP(id, index, partindex):
     dbgmsg(request.full_path + " called")
     if not monsterExists(id, index):
-        return "false"
+        return monsterDoesNotExistErrorString
     mon = sessions[session_dict[id]].getMonster(index)
     part = mon.getPart(partindex)
     if part is None:
@@ -224,7 +229,7 @@ def getPartHP(id, index, partindex):
 def setPartHP(id, index, partindex, value):
     dbgmsg(request.full_path + " called")
     if not monsterExists(id, index):
-        return "false"
+        return monsterDoesNotExistErrorString
     mon = sessions[session_dict[id]].getMonster(index)
     mon.setPartHP(partindex, value)
     return "true"
@@ -233,7 +238,7 @@ def setPartHP(id, index, partindex, value):
 def getAilments(id, index):
     dbgmsg(request.full_path + " called")
     if not monsterExists(id, index):
-        return "false"
+        return monsterDoesNotExistErrorString
     mon = sessions[session_dict[id]].getMonster(index)
     return str(mon.getAilments())
 
@@ -241,7 +246,7 @@ def getAilments(id, index):
 def clearAilments(id, index):
     dbgmsg(request.full_path + " called")
     if not monsterExists(id, index):
-        return "false"
+        return monsterDoesNotExistErrorString
     mon = sessions[session_dict[id]].getMonster(index)
     return mon.deleteAllAilments()
 
@@ -249,7 +254,7 @@ def clearAilments(id, index):
 def getAilmentCount(id, index):
     dbgmsg(request.full_path + " called")
     if not monsterExists(id, index):
-        return "false"
+        return monsterDoesNotExistErrorString
     mon = sessions[session_dict[id]].getMonster(index)
     return str(mon.getAilmentCount())
 
@@ -257,7 +262,7 @@ def getAilmentCount(id, index):
 def getAilmentBuildup(id, index, ailmentindex):
     dbgmsg(request.full_path + " called")
     if not monsterExists(id, index):
-        return "false"
+        return monsterDoesNotExistErrorString
     mon = sessions[session_dict[id]].getMonster(index)
     ailment = mon.getAilment(ailmentindex)
     if ailment is None:
@@ -268,7 +273,7 @@ def getAilmentBuildup(id, index, ailmentindex):
 def setAilmentBuildup(id, index, ailmentindex, value):
     dbgmsg(request.full_path + " called")
     if not monsterExists(id, index):
-        return "false"
+        return monsterDoesNotExistErrorString
     mon = sessions[session_dict[id]].getMonster(index)
     mon.setAilmentBuildup(ailmentindex, value)
     return "true"
