@@ -25,6 +25,8 @@ invalidIndexErrorString = "error: invalid index!"
 sessionDoesNotExistErrorString = "error: session does not exist!"
 sessionAlreadyExistsErrorString = "error: session already exists!"
 monsterDoesNotExistErrorString = "error: monster does not exist!"
+partDoesNotExistErrorString = "error: part does not exist!"
+ailmentDoesNotExistErrorString = "error: ailment does not exist!"
 
 def dbgmsg(msg):
     app.logger.debug(msg)
@@ -180,7 +182,7 @@ def replaceMonster(id, index):
         return sessionDoesNotExistErrorString
     session = sessions[session_dict[id]]
     if session is None:
-        return "false"
+        return sessionDoesNotExistErrorString
     return str(session.createMonster(index))
 
 @app.route('/session/<string:id>/monster/<int:index>/delete')
@@ -222,7 +224,7 @@ def getPartHP(id, index, partindex):
     mon = sessions[session_dict[id]].getMonster(index)
     part = mon.getPart(partindex)
     if part is None:
-        return "false"
+        return partDoesNotExistErrorString
     return str(part)
 
 @app.route('/session/<string:id>/monster/<int:index>/part/<int:partindex>/hp/<int:value>')
@@ -266,7 +268,7 @@ def getAilmentBuildup(id, index, ailmentindex):
     mon = sessions[session_dict[id]].getMonster(index)
     ailment = mon.getAilment(ailmentindex)
     if ailment is None:
-        return "false"
+        return ailmentDoesNotExistErrorString
     return str(ailment)
 
 @app.route('/session/<string:id>/monster/<int:index>/ailment/<int:ailmentindex>/buildup/<int:value>')
@@ -285,14 +287,17 @@ def not_found(error=None):
 
 @app.errorhandler(Exception)
 def handle_exception(e, source="app-errorhandler"):
+    """
     msg = {
         "errorcode": 1,
         "message": repr(e),
         "source": source,
         "request:": request.full_path
     }
+    """
+    msg = "error: " + repr(e) + ", source: " + source + ", request: " + request.full_path
     errmsg(msg)
-    return "false"
+    return msg
 
 if __name__ == "__main__":
     app.run()
