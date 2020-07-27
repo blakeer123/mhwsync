@@ -175,7 +175,7 @@ def getMonster(id, index):
     mon = sessions[session_dict[id]].getMonster(index)
     return str(mon.getParts())
 
-@app.route('/session/<string:id>/monster/<int:index>/replace')
+@app.route('/session/<string:id>/monster/<int:index>/remove')
 def replaceMonster(id, index):
     dbgmsg(request.full_path + " called")
     if not sessionExists(id):
@@ -184,21 +184,6 @@ def replaceMonster(id, index):
     if session is None:
         return sessionDoesNotExistErrorString
     return str(session.createMonster(index))
-
-@app.route('/session/<string:id>/monster/<int:index>/delete')
-def deleteMonster(id, index):
-    dbgmsg(request.full_path + " called")
-    if not sessionExists(id):
-        return sessionDoesNotExistErrorString
-    return sessions[session_dict[id]].deleteMonster(index)
-
-@app.route('/session/<string:id>/monster/<int:index>/clearparts')
-def clearParts(id, index):
-    dbgmsg(request.full_path + " called")
-    if not monsterExists(id, index):
-        return monsterDoesNotExistErrorString
-    mon = sessions[session_dict[id]].getMonster(index)
-    return mon.deleteAllParts()
 
 @app.route('/session/<string:id>/monster/<int:index>/parts')
 def getParts(id, index):
@@ -244,14 +229,6 @@ def getAilments(id, index):
     mon = sessions[session_dict[id]].getMonster(index)
     return str(mon.getAilments())
 
-@app.route('/session/<string:id>/monster/<int:index>/clearailments')
-def clearAilments(id, index):
-    dbgmsg(request.full_path + " called")
-    if not monsterExists(id, index):
-        return monsterDoesNotExistErrorString
-    mon = sessions[session_dict[id]].getMonster(index)
-    return mon.deleteAllAilments()
-
 @app.route('/session/<string:id>/monster/<int:index>/ailmentcount')
 def getAilmentCount(id, index):
     dbgmsg(request.full_path + " called")
@@ -287,14 +264,6 @@ def not_found(error=None):
 
 @app.errorhandler(Exception)
 def handle_exception(e, source="app-errorhandler"):
-    """
-    msg = {
-        "errorcode": 1,
-        "message": repr(e),
-        "source": source,
-        "request:": request.full_path
-    }
-    """
     msg = "error: " + repr(e) + ", source: " + source + ", request: " + request.full_path
     errmsg(msg)
     return msg
