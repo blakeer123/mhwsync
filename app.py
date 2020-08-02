@@ -130,13 +130,6 @@ def monsterExists(id, index):
 def alive():
     return "its alive"
 
-@app.route('/clearall')
-def clearAll():
-    dbgmsg(request.full_path + " called")
-    session_dict.clear()
-    sessions.clear()
-    return "true"
-
 @app.route('/sessions')
 def listSessions():
     dbgmsg(request.full_path + " called")

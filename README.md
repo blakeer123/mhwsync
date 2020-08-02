@@ -1,2 +1,2 @@
 This is a rather bare-bone server to enable part hp and ailment buildup synchronisation for Monster Hunter World overlays like HunterPie. 
-It uses Python/Flask and is currently not suitable for public deployment. Requires Python >=3.7
+Requires Python >=3.7 and Flask >= 1.1.2
