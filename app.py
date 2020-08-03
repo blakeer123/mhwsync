@@ -28,6 +28,8 @@ monsterDoesNotExistErrorString = "error: monster does not exist!"
 partDoesNotExistErrorString = "error: part does not exist!"
 ailmentDoesNotExistErrorString = "error: ailment does not exist!"
 
+partAilmentBufferSize = 50
+
 def dbgmsg(msg):
     app.logger.debug(msg)
 
@@ -40,32 +42,9 @@ class monster:
     def __init__(self):
         self.__parts = dict()
         self.__ailments = dict()
-
-    def addPart(self, id):
-        self.__parts[id] = 1707
-        
-    def addAilment(self, id):
-        self.__ailments[id] = 0
-
-    def deletePart(self, index):
-        if len(self.__parts) < index + 1:
-            return invalidIndexErrorString
-        self.__parts.pop(index)
-        return "true"
-    
-    def deleteAilment(self, index):
-        if len(self.__ailments) < index + 1:
-            return invalidIndexErrorString
-        self.__ailments.pop(index)
-        return "true"
-    
-    def deleteAllParts(self):
-        self.__parts.clear()
-        return "true"
-
-    def deleteAllAilments(self):
-        self.__ailments.clear()
-        return "true"
+        for i in range(partAilmentBufferSize):
+            self.__parts[i] = 0
+            self.__ailments[i] = 0
 
     def getParts(self):
         return self.__parts
