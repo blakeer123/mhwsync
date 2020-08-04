@@ -46,6 +46,11 @@ class monster:
             self.__parts[i] = 0
             self.__ailments[i] = 0
 
+    def clear(self):
+        for i in range(partAilmentBufferSize):
+            self.__parts[i] = 0
+            self.__ailments[i] = 0
+
     def getParts(self):
         return self.__parts
 
@@ -79,9 +84,9 @@ class session:
     def __init__(self):
         self.__monsters = [monster(), monster(), monster()]
 
-    def createMonster(self, index):
+    def clearMonster(self, index):
         if index >= 0 and index <= 2:
-            self.__monsters[index] = monster()
+            self.__monsters[index].clear()
             return "true"
         return invalidIndexErrorString
 
@@ -147,15 +152,15 @@ def getMonster(id, index):
     mon = sessions[session_dict[id]].getMonster(index)
     return str(mon.getParts())
 
-@app.route('/session/<string:id>/monster/<int:index>/remove')
-def replaceMonster(id, index):
+@app.route('/session/<string:id>/monster/<int:index>/clear')
+def clearMonster(id, index):
     dbgmsg(request.full_path + " called")
     if not sessionExists(id):
         return sessionDoesNotExistErrorString
     session = sessions[session_dict[id]]
     if session is None:
         return sessionDoesNotExistErrorString
-    return str(session.createMonster(index))
+    return str(session.clearMonster(index))
 
 @app.route('/session/<string:id>/monster/<int:index>/parts')
 def getParts(id, index):
