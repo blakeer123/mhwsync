@@ -105,11 +105,10 @@ def sessionExists(id):
     return False
 
 def monsterExists(id, index):
-    if sessionExists(id):
-        if sessions[session_dict[id]].getMonster(index) is not None:
-            return True
+    if sessions[session_dict[id]].getMonster(index) is not None:
+        return True
     return False
-    
+
 @app.route('/')
 def alive():
     return "its alive"
@@ -147,6 +146,8 @@ def deleteSession(id):
 @app.route('/session/<string:id>/monster/<int:index>')
 def getMonster(id, index):
     dbgmsg(request.full_path + " called")
+    if not sessionExists(id):
+        return sessionDoesNotExistErrorString
     if not monsterExists(id, index):
         return monsterDoesNotExistErrorString
     mon = sessions[session_dict[id]].getMonster(index)
@@ -165,6 +166,8 @@ def clearMonster(id, index):
 @app.route('/session/<string:id>/monster/<int:index>/parts')
 def getParts(id, index):
     dbgmsg(request.full_path + " called")
+    if not sessionExists(id):
+        return sessionDoesNotExistErrorString
     if not monsterExists(id, index):
         return monsterDoesNotExistErrorString
     mon = sessions[session_dict[id]].getMonster(index)
@@ -173,6 +176,8 @@ def getParts(id, index):
 @app.route('/session/<string:id>/monster/<int:index>/partcount')
 def getPartCount(id, index):
     dbgmsg(request.full_path + " called")
+    if not sessionExists(id):
+        return sessionDoesNotExistErrorString
     if not monsterExists(id, index):
         return monsterDoesNotExistErrorString
     mon = sessions[session_dict[id]].getMonster(index)
@@ -181,6 +186,8 @@ def getPartCount(id, index):
 @app.route('/session/<string:id>/monster/<int:index>/part/<int:partindex>/hp')
 def getPartHP(id, index, partindex):
     dbgmsg(request.full_path + " called")
+    if not sessionExists(id):
+        return sessionDoesNotExistErrorString
     if not monsterExists(id, index):
         return monsterDoesNotExistErrorString
     mon = sessions[session_dict[id]].getMonster(index)
@@ -192,6 +199,8 @@ def getPartHP(id, index, partindex):
 @app.route('/session/<string:id>/monster/<int:index>/part/<int:partindex>/hp/<int:value>')
 def setPartHP(id, index, partindex, value):
     dbgmsg(request.full_path + " called")
+    if not sessionExists(id):
+        return sessionDoesNotExistErrorString
     if not monsterExists(id, index):
         return monsterDoesNotExistErrorString
     mon = sessions[session_dict[id]].getMonster(index)
@@ -201,6 +210,8 @@ def setPartHP(id, index, partindex, value):
 @app.route('/session/<string:id>/monster/<int:index>/ailments')
 def getAilments(id, index):
     dbgmsg(request.full_path + " called")
+    if not sessionExists(id):
+        return sessionDoesNotExistErrorString
     if not monsterExists(id, index):
         return monsterDoesNotExistErrorString
     mon = sessions[session_dict[id]].getMonster(index)
@@ -209,6 +220,8 @@ def getAilments(id, index):
 @app.route('/session/<string:id>/monster/<int:index>/ailmentcount')
 def getAilmentCount(id, index):
     dbgmsg(request.full_path + " called")
+    if not sessionExists(id):
+        return sessionDoesNotExistErrorString
     if not monsterExists(id, index):
         return monsterDoesNotExistErrorString
     mon = sessions[session_dict[id]].getMonster(index)
@@ -217,6 +230,8 @@ def getAilmentCount(id, index):
 @app.route('/session/<string:id>/monster/<int:index>/ailment/<int:ailmentindex>/buildup')
 def getAilmentBuildup(id, index, ailmentindex):
     dbgmsg(request.full_path + " called")
+    if not sessionExists(id):
+        return sessionDoesNotExistErrorString
     if not monsterExists(id, index):
         return monsterDoesNotExistErrorString
     mon = sessions[session_dict[id]].getMonster(index)
@@ -228,6 +243,8 @@ def getAilmentBuildup(id, index, ailmentindex):
 @app.route('/session/<string:id>/monster/<int:index>/ailment/<int:ailmentindex>/buildup/<int:value>')
 def setAilmentBuildup(id, index, ailmentindex, value):
     dbgmsg(request.full_path + " called")
+    if not sessionExists(id):
+        return sessionDoesNotExistErrorString
     if not monsterExists(id, index):
         return monsterDoesNotExistErrorString
     mon = sessions[session_dict[id]].getMonster(index)
