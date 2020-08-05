@@ -21,12 +21,12 @@ DEBUG 10
 NOTSET 0
 """
 
-invalidIndexErrorString = "error: invalid index!"
-sessionDoesNotExistErrorString = "error: session does not exist!"
-sessionAlreadyExistsErrorString = "error: session already exists!"
-monsterDoesNotExistErrorString = "error: monster does not exist!"
-partDoesNotExistErrorString = "error: part does not exist!"
-ailmentDoesNotExistErrorString = "error: ailment does not exist!"
+invalidIndexErrorString = "error: invalid index"
+sessionDoesNotExistErrorString = "error: session does not exist"
+sessionAlreadyExistsErrorString = "error: session already exists"
+monsterDoesNotExistErrorString = "error: monster does not exist"
+partDoesNotExistErrorString = "error: part does not exist"
+ailmentDoesNotExistErrorString = "error: ailment does not exist"
 
 partAilmentBufferSize = 50
 
