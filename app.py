@@ -254,7 +254,7 @@ def setAilmentBuildup(id, index, ailmentindex, value):
 @app.errorhandler(404)
 def not_found(error=None):
     errmsg("error 404: " + request.url)
-    return "false"
+    return "error 404"
 
 @app.errorhandler(Exception)
 def handle_exception(e, source="app-errorhandler"):
