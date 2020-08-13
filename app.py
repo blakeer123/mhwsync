@@ -1,6 +1,11 @@
 from flask import Flask, request, json, jsonify
 import logging
 import os
+import sys
+
+if sys.version_info[0] < 3 or sys.version_info[1] < 7:
+    raise Exception("Python 3.7 or higher required")
+
 
 app = Flask(__name__)
 """
