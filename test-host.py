@@ -1,3 +1,4 @@
+#OUTDATED!
 import urllib.request
 import asyncio
 import re
