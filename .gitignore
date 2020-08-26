@@ -134,3 +134,5 @@ log.log
 .vscode/
 .vs/
 mhwsync.pyproj.user
+.idea/
+obj/
