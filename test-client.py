@@ -1,32 +1,50 @@
-#OUTDATED!
+import json
 import urllib.request
+import urllib.parse
 import asyncio
 import re
-import argparse
+import sys
+
+if sys.version_info[0] < 3 or sys.version_info[1] < 8:
+    raise Exception("Python 3.8 or higher required")
+
+
+class Response:
+    def __init__(self, status, value):
+        self.status = status
+        self.value = value
+
 
 def get(url):
-    response = urllib.request.urlopen("http://" + args.url + urllib.parse.quote(url)).read()
-    response = re.search("'.*'", str(response)).group()
-    response = response.strip("\'[]{}")
-    return str(response)
+    r = urllib.request.urlopen("http://mhwsync.herokuapp.com/session/testsession" + url).read()
+    r = re.search("'.*'", str(r)).group()
+    r = r.strip("\'\\\nn")
+    r_json = json.loads(r)
+    response = Response(r_json["status"], r_json["value"])
+
+    return response
+
 
 async def main():
     while True:
         for i in range(3):
-            result = get("/session/" + args.session + "/monster/" + str(i) + "/parts")
-            assert(result != "false")
-            print("monster " + str(i) + " parts: " + result)
-            result = get("/session/" + args.session + "/monster/" + str(i) + "/ailments")
-            assert(result != "false")
-            print("monster " + str(i) + " ailments: " + result)
+            print("monster " + str(i) + " parts: ")
+            for j in range(5):
+                result = get("/monster/" + str(i) + "/part/" + str(j) + "/hp")
+                assert(result.status == 0)
+                print(result.value + " ")
+            print("\n")
+            print("monster " + str(i) + " ailments: ")
+            for j in range(5):
+                result = get("/monster/" + str(i) + "/ailment/" + str(j) + "/buildup")
+                assert (result.status == 0)
+                print(result.value + " ")
+            print("\n")
         print("")
         await asyncio.sleep(1)
 
-parser = argparse.ArgumentParser()
-parser.add_argument("url")
-parser.add_argument("session")
-args = parser.parse_args()
-assert(get("/session/" + args.session + "/exists") != "false")
+
+assert(get("/exists").status == 0)
 
 try:
     asyncio.run(main())

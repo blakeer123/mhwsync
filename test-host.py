@@ -1,42 +1,58 @@
-#OUTDATED!
+import json
 import urllib.request
+import urllib.parse
 import asyncio
 import re
-import argparse
+import sys
+
+if sys.version_info[0] < 3 or sys.version_info[1] < 8:
+    raise Exception("Python 3.8 or higher required")
+
+
+class Response:
+    def __init__(self, status, value):
+        self.status = status
+        self.value = value
+
 
 def get(url):
-    response = urllib.request.urlopen("http://" + args.url + urllib.parse.quote(url)).read()
-    response = re.search("'.*'", str(response)).group()
-    response = response.strip("\'[]")
-    return str(response)
+    r = urllib.request.urlopen("http://mhwsync.herokuapp.com/session/testsession" + url).read()
+    r = re.search("'.*'", str(r)).group()
+    r = r.strip("\'\\\nn")
+    r_json = json.loads(r)
+    response = Response(r_json["status"], r_json["value"])
+
+    return response
 
 
-parser = argparse.ArgumentParser()
-parser.add_argument("url")
-parser.add_argument("session")
-args = parser.parse_args()
-assert(get("/session/" + args.session + "/create"))
+result = get("/create").status
+if result == 2:
+    assert(get("/delete").status == 0)
+    assert (get("/create").status == 0)
+else:
+    assert(result == 0)
+
 
 async def main():
-    partHp = [[3680], [9348, 5168, 504], [7123, 31074]]
-    partHpModifier = [30, 70, 110]
-    ailmentBuildup = [[190, 692], [21], [61, 28, 0]]
-    ailmentBuildupModifier = [10, 15, 5]
+    part_hp = [[3680], [9348, 5168, 504], [7123, 31074]]
+    part_hp_modifier = [30, 70, 110]
+    ailment_buildup = [[190, 692], [21], [61, 28, 0]]
+    ailment_buildup_modifier = [10, 15, 5]
 
     while True:
         print("changing values")
-        
-        for i in range(len(partHp)):
-            for j in range(len(partHp[i])):
-                if partHp[i][j] <= partHpModifier[i]:
-                    partHp[i][j] = 9999
-                partHp[i][j] -= partHpModifier[i]
-                assert(get("/session/" + args.session + "/monster/" + str(i) + "/part/" + str(j) + "/hp/" + str(partHp[i][j])) == "true")
 
-        for i in range(len(ailmentBuildup)):
-            for j in range(len(ailmentBuildup[i])):
-                ailmentBuildup[i][j] += ailmentBuildupModifier[i]
-                assert(get("/session/" + args.session + "/monster/" + str(i) + "/ailment/" + str(j) + "/buildup/" + str(ailmentBuildup[i][j])) == "true")
+        for i in range(len(part_hp)):
+            for j in range(len(part_hp[i])):
+                if part_hp[i][j] <= part_hp_modifier[i]:
+                    part_hp[i][j] = 9999
+                part_hp[i][j] -= part_hp_modifier[i]
+                assert(get("/monster/" + str(i) + "/part/" + str(j) + "/hp/" + str(part_hp[i][j])).status == 0)
+
+        for i in range(len(ailment_buildup)):
+            for j in range(len(ailment_buildup[i])):
+                ailment_buildup[i][j] += ailment_buildup_modifier[i]
+                assert(get("/monster/" + str(i) + "/ailment/" + str(j) + "/buildup/" + str(ailment_buildup[i][j])).status == 0)
 
         await asyncio.sleep(1)
 
