@@ -2,8 +2,8 @@ import sys
 
 from flask import Flask, request
 
-if sys.version_info[0] < 3 or sys.version_info[1] < 7:
-    raise Exception("Python 3.7 or higher required")
+if sys.version_info[0] < 3 or sys.version_info[1] != 8:
+    raise Exception("Python 3.8 required")
 
 app = Flask(__name__)
 
