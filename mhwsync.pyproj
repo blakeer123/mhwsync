@@ -8,7 +8,7 @@
     <ProjectHome>
     </ProjectHome>
     <ProjectTypeGuids>{789894c7-04a9-4a11-a6b5-3f4435165112};{1b580a1a-fdb3-4b32-83e1-6407eb2722e6};{349c5851-65df-11da-9384-00065b846f21};{888888a0-9f3d-457c-b088-3a5042f75d52}</ProjectTypeGuids>
-    <StartupFile>app.py</StartupFile>
+    <StartupFile>mhwsync.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -22,6 +22,7 @@
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <WebBrowserPort>5000</WebBrowserPort>
     <IsWindowsApplication>False</IsWindowsApplication>
+    <TestFramework>Pytest</TestFramework>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -32,19 +33,20 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="app.py" />
+    <Compile Include="mhwsync.py" />
     <Compile Include="test-client.py" />
     <Compile Include="test-host.py" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Procfile" />
     <Content Include="requirements.txt" />
+    <Content Include="runtime.txt" />
   </ItemGroup>
   <ItemGroup>
     <Interpreter Include="env\">
       <Id>env</Id>
-      <Version>3.7</Version>
-      <Description>env (Python 3.7 (64-bit))</Description>
+      <Version>3.8</Version>
+      <Description>env (Python 3.8 (64-bit))</Description>
       <InterpreterPath>Scripts\python.exe</InterpreterPath>
       <WindowsInterpreterPath>Scripts\pythonw.exe</WindowsInterpreterPath>
       <PathEnvironmentVariable>PYTHONPATH</PathEnvironmentVariable>
