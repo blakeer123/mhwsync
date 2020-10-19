@@ -1,11 +1,17 @@
 import sys
-
 from flask import Flask, request
+# import cProfile
 
-if sys.version_info[0] < 3 or sys.version_info[1] != 8:
-    raise Exception("Python 3.8 required")
+if sys.version_info[0] < 3 or sys.version_info[1] < 8:
+    raise Exception("Python 3.8 or higher required")
 
 app = Flask(__name__)
+
+
+class Globals:
+    bufferSize = 50
+    api_version = 2
+
 
 """
 status codes:
@@ -19,205 +25,275 @@ status codes:
 404 - HTTP 404
 """
 
-ok = {
-    "status": 0,
-    "value": ""
-}
-sessionDoesNotExist = {
-    "status": 1,
-    "value": "session does not exist"
-}
-sessionAlreadyExists = {
-    "status": 2,
-    "value": "session already exists"
-}
-monsterOutsideRange = {
-    "status": 3,
-    "value": "monster outside range"
-}
-partOutsideRange = {
-    "status": 4,
-    "value": "part outside range"
-}
-ailmentOutsideRange = {
-    "status": 5,
-    "value": "ailment outside range"
-}
-e404 = {
-    "status": 404,
-    "value": ""
-}
 
-bufferSize = 50
+class Status:
+    ok = {
+        "status": 0,
+        "value": ""
+    }
+    sessionDoesNotExist = {
+        "status": 1,
+        "value": "session does not exist"
+    }
+    sessionAlreadyExists = {
+        "status": 2,
+        "value": "session already exists"
+    }
+    monsterOutsideRange = {
+        "status": 3,
+        "value": "monster outside range"
+    }
+    partOutsideRange = {
+        "status": 4,
+        "value": "part outside range"
+    }
+    ailmentOutsideRange = {
+        "status": 5,
+        "value": "ailment outside range"
+    }
+    e404 = {
+        "status": 404,
+        "value": ""
+    }
+
+
+class Part:
+    def __init__(self):
+        self.current_hp = 0
+        self.max_hp = 0
+        self.times_broken = 0
+
+
+class Ailment:
+    current_buildup = 0
+    max_buildup = 0
 
 
 class Monster:
     def __init__(self):
-        self.__parts = dict()
-        self.__ailments = dict()
-        for i in range(bufferSize):
-            self.__parts[i] = 0
-            self.__ailments[i] = 0
+        self.parts = list()
+        self.ailments = list()
+        for _ in range(Globals.bufferSize):
+            self.parts.append(Part())
+            self.ailments.append(Ailment())
 
     def clear(self):
-        for i in range(bufferSize):
-            self.__parts[i] = 0
-            self.__ailments[i] = 0
-
-    def get_part(self, index):
-        if len(self.__parts) < index + 1:
-            return None
-        return self.__parts[index]
-
-    def get_ailment(self, index):
-        if len(self.__ailments) < index + 1:
-            return None
-        return self.__ailments[index]
-
-    def set_part_hp(self, index, hp):
-        self.__parts[index] = hp
-
-    def set_ailment_buildup(self, index, hp):
-        self.__ailments[index] = hp
+        for i in range(Globals.bufferSize):
+            self.parts[i] = Part()
+            self.ailments[i] = Ailment()
 
 
 class Session:
     def __init__(self):
-        self.__monsters = [Monster(), Monster(), Monster()]
-
-    def clear_monster(self, index):
-        self.__monsters[index].clear()
-
-    def get_monster(self, index):
-        return self.__monsters[index]
+        self.monsters = [Monster(), Monster(), Monster()]
 
 
-sessions = []
-session_dict = dict()
+sessions = dict()
 
 
 @app.route('/')
 def alive():
-    ok["value"] = ""
-    return ok
+    Status.ok["value"] = ""
+    return Status.ok
+
+
+@app.route('/version')
+def version():
+    Status.ok["value"] = Globals.api_version
+    return Status.ok
 
 
 @app.route('/session/<string:session>/exists')
-def session_info(session):
-    if session in session_dict:
-        ok["value"] = ""
-        return ok
-    return sessionDoesNotExist
+def session_info(session: str):
+    if session in sessions:
+        Status.ok["value"] = ""
+        return Status.ok
+    return Status.sessionDoesNotExist
 
 
 @app.route('/session/<string:session>/create')
-def create_session(session):
-    if session in session_dict:
-        return sessionAlreadyExists
-    index = len(sessions)
-    sessions.append(Session())
-    sessions[index].id = session
-    session_dict[session] = index
-    ok["value"] = ""
-    return ok
+def create_session(session: str):
+    if session in sessions:
+        return Status.sessionAlreadyExists
+
+    sessions[session] = Session()
+    Status.ok["value"] = ""
+    return Status.ok
 
 
 @app.route('/session/<string:session>/delete')
-def delete_session(session):
-    if session not in session_dict:
-        return sessionDoesNotExist
-    sessions.remove(sessions[session_dict[session]])
-    session_dict.pop(session)
-    ok["value"] = ""
-    return ok
+def delete_session(session: str):
+    if session not in sessions:
+        return Status.sessionDoesNotExist
+
+    sessions.pop(session)
+    Status.ok["value"] = ""
+    return Status.ok
 
 
 @app.route('/session/<string:session>/monster/<int:index>/clear')
-def clear_monster(session, index):
-    if session not in session_dict:
-        return sessionDoesNotExist
+def clear_monster(session: str, index: int):
+    if session not in sessions:
+        return Status.sessionDoesNotExist
     if index not in range(3):
-        return monsterOutsideRange
-    session = sessions[session_dict[session]]
-    session.clear_monster(index)
-    ok["value"] = ""
-    return ok
+        return Status.monsterOutsideRange
+
+    sessions[session].monsters[index].clear()
+    Status.ok["value"] = ""
+    return Status.ok
 
 
-@app.route('/session/<string:session>/monster/<int:index>/part/<int:part_index>/hp')
-def get_part_hp(session, index, part_index):
-    if session not in session_dict:
-        return sessionDoesNotExist
+@app.route('/session/<string:session>/monster/<int:index>/part/<int:part_index>/current_hp')
+def get_current_part_hp(session: str, index: int, part_index: int):
+    if session not in sessions:
+        return Status.sessionDoesNotExist
     if index not in range(3):
-        return monsterOutsideRange
-    if part_index not in range(bufferSize):
-        return partOutsideRange
-    mon = sessions[session_dict[session]].get_monster(index)
-    part = mon.get_part(part_index)
-    if part is None:
-        return partOutsideRange
-    ok["value"] = str(part)
-    return ok
+        return Status.monsterOutsideRange
+    if part_index not in range(Globals.bufferSize):
+        return Status.partOutsideRange
+
+    Status.ok["value"] = str(sessions[session].monsters[index].parts[part_index].current_hp)
+    return Status.ok
 
 
-@app.route('/session/<string:session>/monster/<int:index>/part/<int:part_index>/hp/<int:value>')
-def set_part_hp(session, index, part_index, value):
-    if session not in session_dict:
-        return sessionDoesNotExist
+@app.route('/session/<string:session>/monster/<int:index>/part/<int:part_index>/current_hp/<int:value>')
+def set_current_part_hp(session: str, index: int, part_index: int, value: int):
+    if session not in sessions:
+        return Status.sessionDoesNotExist
     if index not in range(3):
-        return monsterOutsideRange
-    if part_index not in range(bufferSize):
-        return partOutsideRange
-    mon = sessions[session_dict[session]].get_monster(index)
-    mon.set_part_hp(part_index, value)
-    ok["value"] = ""
-    return ok
+        return Status.monsterOutsideRange
+    if part_index not in range(Globals.bufferSize):
+        return Status.partOutsideRange
+
+    sessions[session].monsters[index].parts[part_index].current_hp = value
+    Status.ok["value"] = ""
+    return Status.ok
 
 
-@app.route('/session/<string:session>/monster/<int:index>/ailment/<int:ailment_index>/buildup')
-def get_ailment_buildup(session, index, ailment_index):
-    if session not in session_dict:
-        return sessionDoesNotExist
+@app.route('/session/<string:session>/monster/<int:index>/part/<int:part_index>/max_hp')
+def get_max_part_hp(session: str, index: int, part_index: int):
+    if session not in sessions:
+        return Status.sessionDoesNotExist
     if index not in range(3):
-        return monsterOutsideRange
-    if ailment_index not in range(bufferSize):
-        return ailmentOutsideRange
-    mon = sessions[session_dict[session]].get_monster(index)
-    ailment = mon.get_ailment(ailment_index)
-    if ailment is None:
-        return ailmentOutsideRange
-    ok["value"] = str(ailment)
-    return ok
+        return Status.monsterOutsideRange
+    if part_index not in range(Globals.bufferSize):
+        return Status.partOutsideRange
+
+    Status.ok["value"] = str(sessions[session].monsters[index].parts[part_index].max_hp)
+    return Status.ok
 
 
-@app.route('/session/<string:session>/monster/<int:index>/ailment/<int:ailment_index>/buildup/<int:value>')
-def set_ailment_buildup(session, index, ailment_index, value):
-    if session not in session_dict:
-        return sessionDoesNotExist
+@app.route('/session/<string:session>/monster/<int:index>/part/<int:part_index>/max_hp/<int:value>')
+def set_max_part_hp(session: str, index: int, part_index: int, value: int):
+    if session not in sessions:
+        return Status.sessionDoesNotExist
     if index not in range(3):
-        return monsterOutsideRange
-    if ailment_index not in range(bufferSize):
-        return ailmentOutsideRange
-    mon = sessions[session_dict[session]].get_monster(index)
-    mon.set_ailment_buildup(ailment_index, value)
-    ok["value"] = ""
-    return ok
+        return Status.monsterOutsideRange
+    if part_index not in range(Globals.bufferSize):
+        return Status.partOutsideRange
+
+    sessions[session].monsters[index].parts[part_index].max_hp = value
+    Status.ok["value"] = ""
+    return Status.ok
+
+
+@app.route('/session/<string:session>/monster/<int:index>/part/<int:part_index>/times_broken')
+def get_part_times_broken(session: str, index: int, part_index: int):
+    if session not in sessions:
+        return Status.sessionDoesNotExist
+    if index not in range(3):
+        return Status.monsterOutsideRange
+    if part_index not in range(Globals.bufferSize):
+        return Status.partOutsideRange
+
+    Status.ok["value"] = str(sessions[session].monsters[index].parts[part_index].times_broken)
+    return Status.ok
+
+
+@app.route('/session/<string:session>/monster/<int:index>/part/<int:part_index>/times_broken/<int:value>')
+def set_part_times_broken(session: str, index: int, part_index: int, value: int):
+    if session not in sessions:
+        return Status.sessionDoesNotExist
+    if index not in range(3):
+        return Status.monsterOutsideRange
+    if part_index not in range(Globals.bufferSize):
+        return Status.partOutsideRange
+
+    sessions[session].monsters[index].parts[part_index].times_broken = value
+    Status.ok["value"] = ""
+    return Status.ok
+
+
+@app.route('/session/<string:session>/monster/<int:index>/ailment/<int:ailment_index>/current_buildup')
+def get_current_ailment_buildup(session: str, index: int, ailment_index: int):
+    if session not in sessions:
+        return Status.sessionDoesNotExist
+    if index not in range(3):
+        return Status.monsterOutsideRange
+    if ailment_index not in range(Globals.bufferSize):
+        return Status.ailmentOutsideRange
+
+    Status.ok["value"] = str(sessions[session].monsters[index].ailments[ailment_index].current_buildup)
+    return Status.ok
+
+
+@app.route('/session/<string:session>/monster/<int:index>/ailment/<int:ailment_index>/current_buildup/<int:value>')
+def set_current_ailment_buildup(session: str, index: int, ailment_index: int, value: int):
+    if session not in sessions:
+        return Status.sessionDoesNotExist
+    if index not in range(3):
+        return Status.monsterOutsideRange
+    if ailment_index not in range(Globals.bufferSize):
+        return Status.ailmentOutsideRange
+
+    sessions[session].monsters[index].ailments[ailment_index].current_buildup = value
+    Status.ok["value"] = ""
+    return Status.ok
+
+
+@app.route('/session/<string:session>/monster/<int:index>/ailment/<int:ailment_index>/max_buildup')
+def get_max_ailment_buildup(session: str, index: int, ailment_index: int):
+    if session not in sessions:
+        return Status.sessionDoesNotExist
+    if index not in range(3):
+        return Status.monsterOutsideRange
+    if ailment_index not in range(Globals.bufferSize):
+        return Status.ailmentOutsideRange
+
+    Status.ok["value"] = str(sessions[session].monsters[index].ailments[ailment_index].max_buildup)
+    return Status.ok
+
+
+@app.route('/session/<string:session>/monster/<int:index>/ailment/<int:ailment_index>/max_buildup/<int:value>')
+def set_max_ailment_buildup(session: str, index: int, ailment_index: int, value: int):
+    if session not in sessions:
+        return Status.sessionDoesNotExist
+    if index not in range(3):
+        return Status.monsterOutsideRange
+    if ailment_index not in range(Globals.bufferSize):
+        return Status.ailmentOutsideRange
+
+    sessions[session].monsters[index].ailments[ailment_index].max_buildup = value
+    Status.ok["value"] = ""
+    return Status.ok
 
 
 @app.errorhandler(404)
 def not_found():
-    e404["value"] = request.url
-    return e404
+    Status.e404["value"] = request.url
+    return Status.e404
 
 
 @app.errorhandler(Exception)
-def handle_exception(e, source="app-errorhandler"):
+def handle_exception(e: Exception):      
     msg = {
         "status": 10,
-        "value": repr(e) + ", source: " + source + ", request: " + request.full_path
+        "value": repr(e) + ", request: " + request.full_path
     }
+    app.log_exception(e)
     return msg
-
+    
 
 if __name__ == "__main__":
+    # cProfile.run("app.run()", "stats")
     app.run()
