@@ -101,7 +101,7 @@ async def main():
         await asyncio.sleep(1)
 
 try:
-    cProfile.run("asyncio.run(main())", "test-host-stats")
+    cProfile.run("asyncio.run(main())", "stats/test-host-stats")
     
 except KeyboardInterrupt as e:
     pass
