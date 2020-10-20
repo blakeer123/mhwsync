@@ -1,52 +1,98 @@
-import json
-import urllib.request
-import urllib.parse
 import asyncio
-import re
 import sys
+import cProfile
+from prettytable import PrettyTable
+from definitions import get, Globals, handle_error
+
 
 if sys.version_info[0] < 3 or sys.version_info[1] < 8:
     raise Exception("Python 3.8 or higher required")
 
 
-class Response:
-    def __init__(self, status, value):
-        self.status = status
-        self.value = value
-
-
-def get(url):
-    r = urllib.request.urlopen("http://mhwsync.herokuapp.com/session/testsession" + url).read()
-    r = re.search("'.*'", str(r)).group()
-    r = r.strip("\'\\\nn")
-    r_json = json.loads(r)
-    response = Response(r_json["status"], r_json["value"])
-
-    return response
+async def fetch(url: str) -> int:
+    return int(get(url).value)
 
 
 async def main():
-    while True:
-        for i in range(3):
-            print("monster " + str(i) + " parts: ")
-            for j in range(5):
-                result = get("/monster/" + str(i) + "/part/" + str(j) + "/hp")
-                assert(result.status == 0)
-                print(result.value + " ")
-            print("\n")
-            print("monster " + str(i) + " ailments: ")
-            for j in range(5):
-                result = get("/monster/" + str(i) + "/ailment/" + str(j) + "/buildup")
-                assert (result.status == 0)
-                print(result.value + " ")
-            print("\n")
-        print("")
-        await asyncio.sleep(1)
+    print("initializing...")
+    result = None
+    current_hp = list()
+    max_hp = list()
+    times_broken = list()
+    current_buildup = list()
+    max_buildup = list()
+    for i in range(3):
+        current_hp.append(list())
+        max_hp.append(list())
+        times_broken.append(list())
+        current_buildup.append(list())
+        max_buildup.append(list())
+        for _ in range (Globals.buffer_size):
+            current_hp[i].append(0)
+            max_hp[i].append(0)
+            times_broken[i].append(0)
+            current_buildup[i].append(0)
+            max_buildup[i].append(0)
 
 
-assert(get("/exists").status == 0)
+    # count_parts = 0
+    # count_ailments = 0
+    try:
+        while True:
+            # retrieve values
+            print("retrieving values...")
 
-try:
-    asyncio.run(main())
-except KeyboardInterrupt as e:
-    pass
+            for i in range(3):
+                for j in range(Globals.buffer_size):
+                    result = get("/monster/" + str(i) + "/part/" + str(j) + "/current_hp")
+                    assert(result.status == 0)
+                    current_hp[i][j] = result.value
+
+                    result = get("/monster/" + str(i) + "/part/" + str(j) + "/max_hp")
+                    assert(result.status == 0)
+                    max_hp[i][j] = result.value
+                    # if max_hp != 0:
+                    #     count_parts += 1
+
+                    result = get("/monster/" + str(i) + "/part/" + str(j) + "/times_broken")
+                    assert(result.status == 0)
+                    times_broken[i][j] = result.value
+
+                    result = get("/monster/" + str(i) + "/ailment/" + str(j) + "/current_buildup")
+                    assert(result.status == 0)
+                    current_buildup[i][j] = result.value
+
+                    result = get("/monster/" + str(i) + "/ailment/" + str(j) + "/max_buildup")
+                    assert(result.status == 0)
+                    max_buildup[i][j] = result.value
+                    # if max_buildup != 0:
+                    #     count_ailments += 1
+
+            # print values
+            print("creating table...")
+            x = PrettyTable()
+            x.field_names = ["Monster", "current_hp 0", "max_hp 0", "broken 0", "current_hp 1", "max_hp 1", "broken 1", "current_hp 2", "max_hp 2", "broken 2", "buildup 0", "buildup_max 0", "buildup 1", "buildup_max 1", "buildup 2", "buildup_max 2"]
+            for i in range(3):
+                x.add_row([i, current_hp[i][0], max_hp[i][0], times_broken[i][0], current_hp[i][1], max_hp[i][1], times_broken[i][1], current_hp[i][2], max_hp[i][2], times_broken[i][2], current_buildup[i][0], max_buildup[i][0], current_buildup[i][1], max_buildup[i][1], current_buildup[i][2], max_buildup[i][2]])
+            print(x)
+
+            await asyncio.sleep(1)
+            exit(0)
+    except AssertionError:
+        handle_error("result = " + str(result))
+
+
+if __name__ == "__main__":  
+    if len(sys.argv) == 2:
+        Globals.sessionid = sys.argv[1]
+        try:
+            assert(get("/exists").status == 0)
+            cProfile.run("asyncio.run(main())", "stats/test-client-stats")
+        except KeyboardInterrupt:
+            exit(0)
+        except AssertionError:
+            handle_error()
+
+    else:
+        print("usage: test-client.py <sessionid>")
+        exit(1)
