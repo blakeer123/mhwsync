@@ -58,7 +58,7 @@ async def main():
                     if part_hp[i][j] <= part_hp_modifier[i]:
                         part_hp[i][j] = int(part_hp_start[i][j] * 1.2)
                         assert (get("/monster/" + str(i) + "/part/" + str(j) + "/max_hp/" + str(part_hp[i][j])).status == 0)
-                        assert (get("/monster/" + str(i) + "/part/" + str(j) + "/broken_count/" + str(i // 5)).status == 0)
+                        assert (get("/monster/" + str(i) + "/part/" + str(j) + "/times_broken/" + str(i // 5)).status == 0)
                     part_hp[i][j] -= part_hp_modifier[i]
                     assert(get("/monster/" + str(i) + "/part/" + str(j) + "/current_hp/" + str(part_hp[i][j])).status == 0)
 
@@ -77,10 +77,10 @@ if __name__ == "__main__":
     if len(sys.argv) == 1:
         Globals.sessionid = "testsession"
 
-    if len(sys.argv) == 2:
+    elif len(sys.argv) == 2:
         Globals.sessionid = sys.argv[1]
 
-    if len(sys.argv) == 3:
+    elif len(sys.argv) == 3:
         Globals.server_url = sys.argv[1]
         Globals.sessionid = sys.argv[2]
         
