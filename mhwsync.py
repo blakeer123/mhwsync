@@ -1,4 +1,6 @@
 import sys
+import json
+import typing
 from flask import Flask, request
 # import cProfile
 
@@ -58,10 +60,9 @@ class Status:
 
 
 class Part:
-    def __init__(self):
-        self.current_hp = 0
-        self.max_hp = 0
-        self.times_broken = 0
+    current_hp = 0
+    max_hp = 0
+    times_broken = 0
 
 
 class Ailment:
@@ -70,6 +71,9 @@ class Ailment:
 
 
 class Monster:
+    parts: list
+    ailments: list
+
     def __init__(self):
         self.parts = list()
         self.ailments = list()
@@ -86,6 +90,20 @@ class Monster:
 class Session:
     def __init__(self):
         self.monsters = [Monster(), Monster(), Monster()]
+
+
+class CustomEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, Part):
+            return {"current_hp": obj.current_hp, "max_hp": obj.max_hp, "times_broken": obj.times_broken}
+        if isinstance(obj, Ailment):
+            return {"current_buildup": obj.current_buildup, "max_buildup": obj.max_buildup}
+        if isinstance(obj, Monster):
+            return {"parts": obj.parts, "ailments": obj.ailments}
+        if isinstance(obj, Session):
+            return {"monsters": obj.monsters}
+
+        return json.JSONEncoder.default(self, obj)
 
 
 sessions = dict()
@@ -131,6 +149,26 @@ def delete_session(session: str):
     return Status.ok
 
 
+@app.route('/session/<string:session>/')
+def get_session(session: str):
+    if not session in sessions:
+        return Status.sessionDoesNotExist
+
+    Status.ok["value"] = json.dumps(sessions[session], cls=CustomEncoder)
+    return Status.ok
+
+
+@app.route('/session/<string:session>/monster/<int:index>/')
+def get_monster(session: str, index: int):
+    if session not in sessions:
+        return Status.sessionDoesNotExist
+    if index not in range(3):
+        return Status.monsterOutsideRange
+
+    Status.ok["value"] = json.dumps(sessions[session].monsters[index], cls=CustomEncoder)
+    return Status.ok
+
+
 @app.route('/session/<string:session>/monster/<int:index>/clear')
 def clear_monster(session: str, index: int):
     if session not in sessions:
@@ -140,6 +178,19 @@ def clear_monster(session: str, index: int):
 
     sessions[session].monsters[index].clear()
     Status.ok["value"] = ""
+    return Status.ok
+
+
+@app.route('/session/<string:session>/monster/<int:index>/part/<int:part_index>/')
+def get_part(session: str, index: int, part_index: int):
+    if session not in sessions:
+        return Status.sessionDoesNotExist
+    if index not in range(3):
+        return Status.monsterOutsideRange
+    if part_index not in range(Globals.bufferSize):
+        return Status.partOutsideRange
+
+    Status.ok["value"] = json.dumps(sessions[session].monsters[index].parts[part_index], cls=CustomEncoder)
     return Status.ok
 
 
@@ -223,6 +274,17 @@ def set_part_times_broken(session: str, index: int, part_index: int, value: int)
     Status.ok["value"] = ""
     return Status.ok
 
+@app.route('/session/<string:session>/monster/<int:index>/ailment/<int:ailment_index>/')
+def get_ailment(session: str, index: int, ailment_index: int):
+    if session not in sessions:
+        return Status.sessionDoesNotExist
+    if index not in range(3):
+        return Status.monsterOutsideRange
+    if ailment_index not in range(Globals.bufferSize):
+        return Status.ailmentOutsideRange
+
+    Status.ok["value"] = json.dumps(sessions[session].monsters[index].ailments[ailment_index].get_all(), cls=CustomEncoder)
+    return Status.ok
 
 @app.route('/session/<string:session>/monster/<int:index>/ailment/<int:ailment_index>/current_buildup')
 def get_current_ailment_buildup(session: str, index: int, ailment_index: int):

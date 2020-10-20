@@ -73,9 +73,23 @@ async def main():
         handle_error("result = " + str(result))
 
 
-if __name__ == "__main__":  
+if __name__ == "__main__":
+    if len(sys.argv) == 1:
+        Globals.sessionid = "testsession"
+
+    if len(sys.argv) == 2:
+        Globals.sessionid = sys.argv[1]
+
+    if len(sys.argv) == 3:
+        Globals.server_url = sys.argv[1]
+        Globals.sessionid = sys.argv[2]
+        
+    else:
+        print("usage: test-host.py <options>")
+        print("\toptions: <server> <sessionid>")
+        exit(1)
+
     try:
         cProfile.run("asyncio.run(main())", "stats/test-host-stats")
-        
     except KeyboardInterrupt:
         exit(0)

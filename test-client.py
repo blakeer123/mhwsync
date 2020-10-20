@@ -1,6 +1,7 @@
 import asyncio
 import sys
 import cProfile
+import json
 from prettytable import PrettyTable
 from definitions import get, Globals, handle_error
 
@@ -44,29 +45,18 @@ async def main():
 
             for i in range(3):
                 for j in range(Globals.buffer_size):
-                    result = get("/monster/" + str(i) + "/part/" + str(j) + "/current_hp")
+                    result = get("/monster/" + str(i) + "/part/" + str(j) + "/")
                     assert(result.status == 0)
-                    current_hp[i][j] = result.value
+                    r = json.loads(result.value)
+                    current_hp[i][j] = r["current_hp"]
+                    max_hp[i][j] = r["max_hp"]
+                    times_broken[i][j] = r["times_broken"]
 
-                    result = get("/monster/" + str(i) + "/part/" + str(j) + "/max_hp")
+                    result = get("/monster/" + str(i) + "/ailment/" + str(j) + "/")
                     assert(result.status == 0)
-                    max_hp[i][j] = result.value
-                    # if max_hp != 0:
-                    #     count_parts += 1
-
-                    result = get("/monster/" + str(i) + "/part/" + str(j) + "/times_broken")
-                    assert(result.status == 0)
-                    times_broken[i][j] = result.value
-
-                    result = get("/monster/" + str(i) + "/ailment/" + str(j) + "/current_buildup")
-                    assert(result.status == 0)
-                    current_buildup[i][j] = result.value
-
-                    result = get("/monster/" + str(i) + "/ailment/" + str(j) + "/max_buildup")
-                    assert(result.status == 0)
-                    max_buildup[i][j] = result.value
-                    # if max_buildup != 0:
-                    #     count_ailments += 1
+                    r = json.loads(result.value)
+                    current_buildup[i][j] = r["current_buildup"]
+                    max_buildup[i][j] = r["max_buildup"]
 
             # print values
             print("creating table...")
@@ -85,14 +75,19 @@ async def main():
 if __name__ == "__main__":  
     if len(sys.argv) == 2:
         Globals.sessionid = sys.argv[1]
-        try:
-            assert(get("/exists").status == 0)
-            cProfile.run("asyncio.run(main())", "stats/test-client-stats")
-        except KeyboardInterrupt:
-            exit(0)
-        except AssertionError:
-            handle_error()
 
+    if len(sys.argv) == 3:
+        Globals.server_url = sys.argv[1]
+        Globals.sessionid = sys.argv[2]
+        
     else:
-        print("usage: test-client.py <sessionid>")
+        print("usage: test-client.py <optional: server> sessionid")
         exit(1)
+
+    try:
+        assert(get("/exists").status == 0)
+        cProfile.run("asyncio.run(main())", "stats/test-client-stats")
+    except KeyboardInterrupt:
+        exit(0)
+    except AssertionError:
+        handle_error()
