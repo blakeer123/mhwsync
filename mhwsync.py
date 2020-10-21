@@ -1,13 +1,20 @@
 import sys
+import os
 import json
 import typing
 from flask import Flask, request
-# import cProfile
+from atatus.contrib.flask import Atatus
 
 if sys.version_info[0] < 3 or sys.version_info[1] < 8:
     raise Exception("Python 3.8 or higher required")
 
 app = Flask(__name__)
+
+app.config['ATATUS'] = {
+    'APP_NAME': os.environ['ATATUS_APP_NAME'],
+    'LICENSE_KEY': os.environ['ATATUS_LICENSE_KEY']
+}
+atatus = Atatus(app)
 
 
 class Globals:
@@ -357,5 +364,4 @@ def handle_exception(e: Exception):
     
 
 if __name__ == "__main__":
-    # cProfile.run("app.run()", "stats/main")
     app.run()
