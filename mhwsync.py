@@ -365,6 +365,21 @@ def set_max_ailment_buildup(session: str, index: int, ailment_index: int, value:
     return Status.ok
 
 
+@app.route('/session/<string:session>/monster/<int:index>/ailment/<int:ailment_index>/set_all/<int:current>/<int:max>/')
+def set_ailment(session: str, index: int, ailment_index: int, current: int, max: int):
+    if session not in sessions:
+        return Status.sessionDoesNotExist
+    if index not in range(3):
+        return Status.monsterOutsideRange
+    if ailment_index not in range(Globals.bufferSize):
+        return Status.ailmentOutsideRange
+
+    sessions[session].monsters[index].ailments[ailment_index].current_buildup = current
+    sessions[session].monsters[index].ailments[ailment_index].max_buildup = max
+    Status.ok["value"] = ""
+    return Status.ok
+
+
 @app.errorhandler(404)
 def not_found():
     Status.e404["value"] = request.url
