@@ -281,6 +281,24 @@ def set_part_times_broken(session: str, index: int, part_index: int, value: int)
     Status.ok["value"] = ""
     return Status.ok
 
+
+@app.route('/session/<string:session>/monster/<int:index>/part/<int:part_index>/set_all/<int:current_hp>/<int:max_hp>/<int:times_broken/')
+def set_part(session: str, index: int, part_index: int, current_hp: int, max_hp: int, times_broken: int):
+    if session not in sessions:
+        return Status.sessionDoesNotExist
+    if index not in range(3):
+        return Status.monsterOutsideRange
+    if part_index not in range(Globals.bufferSize):
+        return Status.partOutsideRange
+
+    sessions[session].monsters[index].parts[part_index].current_hp = current_hp
+    sessions[session].monsters[index].parts[part_index].max_hp = max_hp
+    sessions[session].monsters[index].parts[part_index].times_broken = times_broken
+
+    Status.ok["value"] = ""
+    return Status.ok
+
+
 @app.route('/session/<string:session>/monster/<int:index>/ailment/<int:ailment_index>/')
 def get_ailment(session: str, index: int, ailment_index: int):
     if session not in sessions:
