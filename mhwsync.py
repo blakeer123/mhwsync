@@ -282,7 +282,7 @@ def set_part_times_broken(session: str, index: int, part_index: int, value: int)
     return Status.ok
 
 
-@app.route('/session/<string:session>/monster/<int:index>/part/<int:part_index>/set_all/<int:current_hp>/<int:max_hp>/<int:times_broken/')
+@app.route('/session/<string:session>/monster/<int:index>/part/<int:part_index>/set_all/<int:current_hp>/<int:max_hp>/<int:times_broken>/')
 def set_part(session: str, index: int, part_index: int, current_hp: int, max_hp: int, times_broken: int):
     if session not in sessions:
         return Status.sessionDoesNotExist
