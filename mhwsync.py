@@ -339,7 +339,7 @@ def get_ailment(session: str, index: int, ailment_index: int):
 
 
 @app.route('/session/<string:session>/monster/<int:index>/ailment_count')
-def get_part_count(session: str, index: int):
+def get_ailment_count(session: str, index: int):
     if session not in sessions:
         return Status.sessionDoesNotExist
     if index not in range(3):
@@ -350,7 +350,7 @@ def get_part_count(session: str, index: int):
 
 
 @app.route('/session/<string:session>/monster/<int:index>/ailment_count/<int:count>')
-def set_part_count(session: str, index: int, count: int):
+def set_ailment_count(session: str, index: int, count: int):
     if session not in sessions:
         return Status.sessionDoesNotExist
     if index not in range(3):
