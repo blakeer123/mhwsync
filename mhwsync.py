@@ -1,7 +1,6 @@
 import sys
 import os
 import json
-import typing
 from flask import Flask, request
 from atatus.contrib.flask import Atatus
 
@@ -78,7 +77,9 @@ class Ailment:
 
 
 class Monster:
+    part_count: int
     parts: list
+    ailment_count: int
     ailments: list
 
     def __init__(self):
@@ -106,7 +107,7 @@ class CustomEncoder(json.JSONEncoder):
         if isinstance(obj, Ailment):
             return {"current_buildup": obj.current_buildup, "max_buildup": obj.max_buildup}
         if isinstance(obj, Monster):
-            return {"parts": obj.parts, "ailments": obj.ailments}
+            return {"part_count": obj.part_count, "parts": obj.parts, "ailment_count": obj.ailment_count, "ailments": obj.ailments}
         if isinstance(obj, Session):
             return {"monsters": obj.monsters}
 
@@ -158,7 +159,7 @@ def delete_session(session: str):
 
 @app.route('/session/<string:session>/')
 def get_session(session: str):
-    if not session in sessions:
+    if session not in sessions:
         return Status.sessionDoesNotExist
 
     Status.ok["value"] = json.dumps(sessions[session], cls=CustomEncoder)
@@ -184,6 +185,31 @@ def clear_monster(session: str, index: int):
         return Status.monsterOutsideRange
 
     sessions[session].monsters[index].clear()
+    Status.ok["value"] = ""
+    return Status.ok
+
+
+@app.route('/session/<string:session>/monster/<int:index>/part_count')
+def get_part_count(session: str, index: int):
+    if session not in sessions:
+        return Status.sessionDoesNotExist
+    if index not in range(3):
+        return Status.monsterOutsideRange
+
+    Status.ok["value"] = str(sessions[session].monsters[index].part_count)
+    return Status.ok
+
+
+@app.route('/session/<string:session>/monster/<int:index>/part_count/<int:count>')
+def set_part_count(session: str, index: int, count: int):
+    if session not in sessions:
+        return Status.sessionDoesNotExist
+    if index not in range(3):
+        return Status.monsterOutsideRange
+    if count > Globals.bufferSize:
+        return Status.partOutsideRange
+
+    sessions[session].monsters[index].part_count = count
     Status.ok["value"] = ""
     return Status.ok
 
@@ -310,6 +336,32 @@ def get_ailment(session: str, index: int, ailment_index: int):
 
     Status.ok["value"] = json.dumps(sessions[session].monsters[index].ailments[ailment_index].get_all(), cls=CustomEncoder)
     return Status.ok
+
+
+@app.route('/session/<string:session>/monster/<int:index>/ailment_count')
+def get_part_count(session: str, index: int):
+    if session not in sessions:
+        return Status.sessionDoesNotExist
+    if index not in range(3):
+        return Status.monsterOutsideRange
+
+    Status.ok["value"] = str(sessions[session].monsters[index].ailment_count)
+    return Status.ok
+
+
+@app.route('/session/<string:session>/monster/<int:index>/ailment_count/<int:count>')
+def set_part_count(session: str, index: int, count: int):
+    if session not in sessions:
+        return Status.sessionDoesNotExist
+    if index not in range(3):
+        return Status.monsterOutsideRange
+    if count > Globals.bufferSize:
+        return Status.ailmentOutsideRange
+
+    sessions[session].monsters[index].ailment_count = count
+    Status.ok["value"] = ""
+    return Status.ok
+
 
 @app.route('/session/<string:session>/monster/<int:index>/ailment/<int:ailment_index>/current_buildup')
 def get_current_ailment_buildup(session: str, index: int, ailment_index: int):
