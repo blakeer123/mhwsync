@@ -1,6 +1,7 @@
 import sys
 import os
 import json
+import logging
 from flask import Flask, request
 from atatus.contrib.flask import Atatus
 
@@ -14,6 +15,9 @@ app.config['ATATUS'] = {
     'LICENSE_KEY': os.environ['ATATUS_LICENSE_KEY']
 }
 atatus = Atatus(app)
+
+log = logging.getLogger('werkzeug')
+log.setLevel(logging.ERROR)
 
 
 class Globals:
