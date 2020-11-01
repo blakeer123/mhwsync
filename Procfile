@@ -1,1 +1,1 @@
-web: gunicorn mhwsync:app
+web: gunicorn --log-level error mhwsync:app
