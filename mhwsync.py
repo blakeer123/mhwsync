@@ -1,6 +1,5 @@
 import sys
 import os
-import json
 import logging
 from flask import Flask, request
 from atatus.contrib.flask import Atatus
@@ -70,20 +69,21 @@ class Status:
 
 
 class Part:
-    current_hp = 0
-    max_hp = 0
-    times_broken = 0
+    current_hp: int
+
+    def __init__(self):
+        self.current_hp = 0
 
 
 class Ailment:
-    current_buildup = 0
-    max_buildup = 0
+    current_buildup: int
+
+    def __init__(self):
+        self.current_buildup = 0
 
 
 class Monster:
-    part_count: int
     parts: list
-    ailment_count: int
     ailments: list
 
     def __init__(self):
@@ -100,22 +100,10 @@ class Monster:
 
 
 class Session:
+    monsters: list
+    
     def __init__(self):
         self.monsters = [Monster(), Monster(), Monster()]
-
-
-class CustomEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, Part):
-            return {"current_hp": obj.current_hp, "max_hp": obj.max_hp, "times_broken": obj.times_broken}
-        if isinstance(obj, Ailment):
-            return {"current_buildup": obj.current_buildup, "max_buildup": obj.max_buildup}
-        if isinstance(obj, Monster):
-            return {"part_count": obj.part_count, "parts": obj.parts, "ailment_count": obj.ailment_count, "ailments": obj.ailments}
-        if isinstance(obj, Session):
-            return {"monsters": obj.monsters}
-
-        return json.JSONEncoder.default(self, obj)
 
 
 sessions = dict()
@@ -161,26 +149,6 @@ def delete_session(session: str):
     return Status.ok
 
 
-@app.route('/session/<string:session>/')
-def get_session(session: str):
-    if session not in sessions:
-        return Status.sessionDoesNotExist
-
-    Status.ok["value"] = json.dumps(sessions[session], cls=CustomEncoder)
-    return Status.ok
-
-
-@app.route('/session/<string:session>/monster/<int:index>/')
-def get_monster(session: str, index: int):
-    if session not in sessions:
-        return Status.sessionDoesNotExist
-    if index not in range(3):
-        return Status.monsterOutsideRange
-
-    Status.ok["value"] = json.dumps(sessions[session].monsters[index], cls=CustomEncoder)
-    return Status.ok
-
-
 @app.route('/session/<string:session>/monster/<int:index>/clear')
 def clear_monster(session: str, index: int):
     if session not in sessions:
@@ -190,44 +158,6 @@ def clear_monster(session: str, index: int):
 
     sessions[session].monsters[index].clear()
     Status.ok["value"] = ""
-    return Status.ok
-
-
-@app.route('/session/<string:session>/monster/<int:index>/part_count')
-def get_part_count(session: str, index: int):
-    if session not in sessions:
-        return Status.sessionDoesNotExist
-    if index not in range(3):
-        return Status.monsterOutsideRange
-
-    Status.ok["value"] = str(sessions[session].monsters[index].part_count)
-    return Status.ok
-
-
-@app.route('/session/<string:session>/monster/<int:index>/part_count/<int:count>')
-def set_part_count(session: str, index: int, count: int):
-    if session not in sessions:
-        return Status.sessionDoesNotExist
-    if index not in range(3):
-        return Status.monsterOutsideRange
-    if count > Globals.bufferSize:
-        return Status.partOutsideRange
-
-    sessions[session].monsters[index].part_count = count
-    Status.ok["value"] = ""
-    return Status.ok
-
-
-@app.route('/session/<string:session>/monster/<int:index>/part/<int:part_index>/')
-def get_part(session: str, index: int, part_index: int):
-    if session not in sessions:
-        return Status.sessionDoesNotExist
-    if index not in range(3):
-        return Status.monsterOutsideRange
-    if part_index not in range(Globals.bufferSize):
-        return Status.partOutsideRange
-
-    Status.ok["value"] = json.dumps(sessions[session].monsters[index].parts[part_index], cls=CustomEncoder)
     return Status.ok
 
 
@@ -258,115 +188,6 @@ def set_current_part_hp(session: str, index: int, part_index: int, value: int):
     return Status.ok
 
 
-@app.route('/session/<string:session>/monster/<int:index>/part/<int:part_index>/max_hp')
-def get_max_part_hp(session: str, index: int, part_index: int):
-    if session not in sessions:
-        return Status.sessionDoesNotExist
-    if index not in range(3):
-        return Status.monsterOutsideRange
-    if part_index not in range(Globals.bufferSize):
-        return Status.partOutsideRange
-
-    Status.ok["value"] = str(sessions[session].monsters[index].parts[part_index].max_hp)
-    return Status.ok
-
-
-@app.route('/session/<string:session>/monster/<int:index>/part/<int:part_index>/max_hp/<int:value>')
-def set_max_part_hp(session: str, index: int, part_index: int, value: int):
-    if session not in sessions:
-        return Status.sessionDoesNotExist
-    if index not in range(3):
-        return Status.monsterOutsideRange
-    if part_index not in range(Globals.bufferSize):
-        return Status.partOutsideRange
-
-    sessions[session].monsters[index].parts[part_index].max_hp = value
-    Status.ok["value"] = ""
-    return Status.ok
-
-
-@app.route('/session/<string:session>/monster/<int:index>/part/<int:part_index>/times_broken')
-def get_part_times_broken(session: str, index: int, part_index: int):
-    if session not in sessions:
-        return Status.sessionDoesNotExist
-    if index not in range(3):
-        return Status.monsterOutsideRange
-    if part_index not in range(Globals.bufferSize):
-        return Status.partOutsideRange
-
-    Status.ok["value"] = str(sessions[session].monsters[index].parts[part_index].times_broken)
-    return Status.ok
-
-
-@app.route('/session/<string:session>/monster/<int:index>/part/<int:part_index>/times_broken/<int:value>')
-def set_part_times_broken(session: str, index: int, part_index: int, value: int):
-    if session not in sessions:
-        return Status.sessionDoesNotExist
-    if index not in range(3):
-        return Status.monsterOutsideRange
-    if part_index not in range(Globals.bufferSize):
-        return Status.partOutsideRange
-
-    sessions[session].monsters[index].parts[part_index].times_broken = value
-    Status.ok["value"] = ""
-    return Status.ok
-
-
-@app.route('/session/<string:session>/monster/<int:index>/part/<int:part_index>/set_all/<int:current_hp>/<int:max_hp>/<int:times_broken>/')
-def set_part(session: str, index: int, part_index: int, current_hp: int, max_hp: int, times_broken: int):
-    if session not in sessions:
-        return Status.sessionDoesNotExist
-    if index not in range(3):
-        return Status.monsterOutsideRange
-    if part_index not in range(Globals.bufferSize):
-        return Status.partOutsideRange
-
-    sessions[session].monsters[index].parts[part_index].current_hp = current_hp
-    sessions[session].monsters[index].parts[part_index].max_hp = max_hp
-    sessions[session].monsters[index].parts[part_index].times_broken = times_broken
-
-    Status.ok["value"] = ""
-    return Status.ok
-
-
-@app.route('/session/<string:session>/monster/<int:index>/ailment/<int:ailment_index>/')
-def get_ailment(session: str, index: int, ailment_index: int):
-    if session not in sessions:
-        return Status.sessionDoesNotExist
-    if index not in range(3):
-        return Status.monsterOutsideRange
-    if ailment_index not in range(Globals.bufferSize):
-        return Status.ailmentOutsideRange
-
-    Status.ok["value"] = json.dumps(sessions[session].monsters[index].ailments[ailment_index].get_all(), cls=CustomEncoder)
-    return Status.ok
-
-
-@app.route('/session/<string:session>/monster/<int:index>/ailment_count')
-def get_ailment_count(session: str, index: int):
-    if session not in sessions:
-        return Status.sessionDoesNotExist
-    if index not in range(3):
-        return Status.monsterOutsideRange
-
-    Status.ok["value"] = str(sessions[session].monsters[index].ailment_count)
-    return Status.ok
-
-
-@app.route('/session/<string:session>/monster/<int:index>/ailment_count/<int:count>')
-def set_ailment_count(session: str, index: int, count: int):
-    if session not in sessions:
-        return Status.sessionDoesNotExist
-    if index not in range(3):
-        return Status.monsterOutsideRange
-    if count > Globals.bufferSize:
-        return Status.ailmentOutsideRange
-
-    sessions[session].monsters[index].ailment_count = count
-    Status.ok["value"] = ""
-    return Status.ok
-
-
 @app.route('/session/<string:session>/monster/<int:index>/ailment/<int:ailment_index>/current_buildup')
 def get_current_ailment_buildup(session: str, index: int, ailment_index: int):
     if session not in sessions:
@@ -390,48 +211,6 @@ def set_current_ailment_buildup(session: str, index: int, ailment_index: int, va
         return Status.ailmentOutsideRange
 
     sessions[session].monsters[index].ailments[ailment_index].current_buildup = value
-    Status.ok["value"] = ""
-    return Status.ok
-
-
-@app.route('/session/<string:session>/monster/<int:index>/ailment/<int:ailment_index>/max_buildup')
-def get_max_ailment_buildup(session: str, index: int, ailment_index: int):
-    if session not in sessions:
-        return Status.sessionDoesNotExist
-    if index not in range(3):
-        return Status.monsterOutsideRange
-    if ailment_index not in range(Globals.bufferSize):
-        return Status.ailmentOutsideRange
-
-    Status.ok["value"] = str(sessions[session].monsters[index].ailments[ailment_index].max_buildup)
-    return Status.ok
-
-
-@app.route('/session/<string:session>/monster/<int:index>/ailment/<int:ailment_index>/max_buildup/<int:value>')
-def set_max_ailment_buildup(session: str, index: int, ailment_index: int, value: int):
-    if session not in sessions:
-        return Status.sessionDoesNotExist
-    if index not in range(3):
-        return Status.monsterOutsideRange
-    if ailment_index not in range(Globals.bufferSize):
-        return Status.ailmentOutsideRange
-
-    sessions[session].monsters[index].ailments[ailment_index].max_buildup = value
-    Status.ok["value"] = ""
-    return Status.ok
-
-
-@app.route('/session/<string:session>/monster/<int:index>/ailment/<int:ailment_index>/set_all/<int:current>/<int:max>/')
-def set_ailment(session: str, index: int, ailment_index: int, current: int, max: int):
-    if session not in sessions:
-        return Status.sessionDoesNotExist
-    if index not in range(3):
-        return Status.monsterOutsideRange
-    if ailment_index not in range(Globals.bufferSize):
-        return Status.ailmentOutsideRange
-
-    sessions[session].monsters[index].ailments[ailment_index].current_buildup = current
-    sessions[session].monsters[index].ailments[ailment_index].max_buildup = max
     Status.ok["value"] = ""
     return Status.ok
 
