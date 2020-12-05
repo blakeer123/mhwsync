@@ -216,7 +216,7 @@ def set_current_ailment_buildup(session: str, index: int, ailment_index: int, va
 
 
 @app.errorhandler(404)
-def not_found():
+def not_found(error):
     Status.e404["value"] = request.url
     return Status.e404
 
