@@ -15,9 +15,6 @@ app.config['ATATUS'] = {
 }
 atatus = Atatus(app)
 
-log = logging.getLogger('werkzeug')
-log.setLevel(logging.ERROR)
-
 
 class Globals:
     bufferSize = 50
@@ -66,6 +63,14 @@ class Status:
         "status": 404,
         "value": ""
     }
+
+
+log = logging.getLogger('werkzeug')
+log.setLevel(logging.WARNING)
+
+
+def plugin_error(status_code: int):
+    log.warning("[Plugin Error] Status: " + str(status_code) + ", request: " + request.full_path)
 
 
 class Part:
@@ -132,6 +137,7 @@ def session_info(session: str):
 @app.route('/session/<string:session>/create')
 def create_session(session: str):
     if session in sessions:
+        plugin_error(Status.sessionAlreadyExists.get("status"))
         return Status.sessionAlreadyExists
 
     sessions[session] = Session()
@@ -142,6 +148,7 @@ def create_session(session: str):
 @app.route('/session/<string:session>/delete')
 def delete_session(session: str):
     if session not in sessions:
+        plugin_error(Status.sessionDoesNotExist.get("status"))
         return Status.sessionDoesNotExist
 
     sessions.pop(session)
@@ -152,8 +159,10 @@ def delete_session(session: str):
 @app.route('/session/<string:session>/monster/<int:index>/clear')
 def clear_monster(session: str, index: int):
     if session not in sessions:
+        plugin_error(Status.sessionDoesNotExist.get("status"))
         return Status.sessionDoesNotExist
     if index not in range(3):
+        plugin_error(Status.monsterOutsideRange.get("status"))
         return Status.monsterOutsideRange
 
     sessions[session].monsters[index].clear()
@@ -164,10 +173,13 @@ def clear_monster(session: str, index: int):
 @app.route('/session/<string:session>/monster/<int:index>/part/<int:part_index>/current_hp')
 def get_current_part_hp(session: str, index: int, part_index: int):
     if session not in sessions:
+        plugin_error(Status.sessionDoesNotExist.get("status"))
         return Status.sessionDoesNotExist
     if index not in range(3):
+        plugin_error(Status.monsterOutsideRange.get("status"))
         return Status.monsterOutsideRange
     if part_index not in range(Globals.bufferSize):
+        plugin_error(Status.partOutsideRange.get("status"))
         return Status.partOutsideRange
 
     Status.ok["value"] = str(sessions[session].monsters[index].parts[part_index].current_hp)
@@ -177,10 +189,13 @@ def get_current_part_hp(session: str, index: int, part_index: int):
 @app.route('/session/<string:session>/monster/<int:index>/part/<int:part_index>/current_hp/<int:value>')
 def set_current_part_hp(session: str, index: int, part_index: int, value: int):
     if session not in sessions:
+        plugin_error(Status.sessionDoesNotExist.get("status"))
         return Status.sessionDoesNotExist
     if index not in range(3):
+        plugin_error(Status.monsterOutsideRange.get("status"))
         return Status.monsterOutsideRange
     if part_index not in range(Globals.bufferSize):
+        plugin_error(Status.partOutsideRange.get("status"))
         return Status.partOutsideRange
 
     sessions[session].monsters[index].parts[part_index].current_hp = value
@@ -191,10 +206,13 @@ def set_current_part_hp(session: str, index: int, part_index: int, value: int):
 @app.route('/session/<string:session>/monster/<int:index>/ailment/<int:ailment_index>/current_buildup')
 def get_current_ailment_buildup(session: str, index: int, ailment_index: int):
     if session not in sessions:
+        plugin_error(Status.sessionDoesNotExist.get("status"))
         return Status.sessionDoesNotExist
     if index not in range(3):
+        plugin_error(Status.monsterOutsideRange.get("status"))
         return Status.monsterOutsideRange
     if ailment_index not in range(Globals.bufferSize):
+        plugin_error(Status.ailmentOutsideRange.get("status"))
         return Status.ailmentOutsideRange
 
     Status.ok["value"] = str(sessions[session].monsters[index].ailments[ailment_index].current_buildup)
@@ -204,10 +222,13 @@ def get_current_ailment_buildup(session: str, index: int, ailment_index: int):
 @app.route('/session/<string:session>/monster/<int:index>/ailment/<int:ailment_index>/current_buildup/<int:value>')
 def set_current_ailment_buildup(session: str, index: int, ailment_index: int, value: int):
     if session not in sessions:
+        plugin_error(Status.sessionDoesNotExist.get("status"))
         return Status.sessionDoesNotExist
     if index not in range(3):
+        plugin_error(Status.monsterOutsideRange.get("status"))
         return Status.monsterOutsideRange
     if ailment_index not in range(Globals.bufferSize):
+        plugin_error(Status.ailmentOutsideRange.get("status"))
         return Status.ailmentOutsideRange
 
     sessions[session].monsters[index].ailments[ailment_index].current_buildup = value
@@ -216,8 +237,9 @@ def set_current_ailment_buildup(session: str, index: int, ailment_index: int, va
 
 
 @app.errorhandler(404)
-def not_found():
+def not_found(error):
     Status.e404["value"] = request.url
+    plugin_error(Status.e404.get("status"))
     return Status.e404
 
 
