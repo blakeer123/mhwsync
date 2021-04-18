@@ -2,18 +2,11 @@ import sys
 import os
 import logging
 from flask import Flask, request
-from atatus.contrib.flask import Atatus
 
 if sys.version_info[0] < 3 or sys.version_info[1] < 8:
     raise Exception("Python 3.8 or higher required")
 
 app = Flask(__name__)
-
-app.config['ATATUS'] = {
-    'APP_NAME': os.environ['ATATUS_APP_NAME'],
-    'LICENSE_KEY': os.environ['ATATUS_LICENSE_KEY']
-}
-atatus = Atatus(app)
 
 
 class Globals:
